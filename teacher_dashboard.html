@@ -1,0 +1,3431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>EduPortal NG — Teacher Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style>
+    /* ── CSS DESIGN TOKENS ── */
+    :root {
+      --canvas:         #fdfcf8;
+      --sidebar-deep:   #0d2b1a;
+      --sidebar-mid:    #133d26;
+      --sidebar-hover:  #1a4f32;
+      --sidebar-active: #1e5c3a;
+      --gold:           #c8973a;
+      --gold-light:     #e0b86a;
+      --sage:           #eaf2ed;
+      --sage-dark:      #cddbd3;
+      --text-primary:   #1a1f1c;
+      --text-secondary: #5a6b61;
+      --text-muted:     #8fa396;
+      --border:         #e2ebe5;
+      --border-dark:    #cddbd3;
+      --white:          #ffffff;
+      --success:        #2e7d52;
+      --success-bg:     #e8f5ee;
+      --warning:        #b45309;
+      --warning-bg:     #fef3c7;
+      --danger:         #c0392b;
+      --danger-bg:      #fdf2f1;
+      --radius-sm:      6px;
+      --radius-md:      10px;
+      --radius-lg:      16px;
+      --radius-xl:      24px;
+      --shadow-sm:      0 1px 3px rgba(13,43,26,.06), 0 1px 2px rgba(13,43,26,.04);
+      --shadow-md:      0 4px 12px rgba(13,43,26,.08), 0 2px 6px rgba(13,43,26,.05);
+      --shadow-lg:      0 12px 32px rgba(13,43,26,.10), 0 4px 10px rgba(13,43,26,.06);
+      --sidebar-w:      238px;
+      --topbar-h:       64px;
+      --font-display:   'Lora', Georgia, serif;
+      --font-body:      'DM Sans', system-ui, sans-serif;
+      --font-mono:      'DM Mono', 'Courier New', monospace;
+      --transition:     0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; -webkit-font-smoothing: antialiased; }
+    body { font-family: var(--font-body); background: var(--canvas); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; }
+
+    /* ── AUTH OVERLAY ── */
+    #auth-overlay { position: fixed; inset: 0; background: var(--sidebar-deep); display: flex; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.4s ease; }
+    #auth-overlay.hidden { opacity: 0; pointer-events: none; }
+    .auth-spinner { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+    .spinner-ring { width: 42px; height: 42px; border: 3px solid rgba(200,151,58,.25); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.9s linear infinite; }
+    .auth-hint { color: rgba(255,255,255,.4); font-size: .8rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── APP SHELL ── */
+    #app { display: grid; grid-template-columns: var(--sidebar-w) 1fr; grid-template-rows: var(--topbar-h) 1fr; min-height: 100vh; }
+
+    /* ── SIDEBAR ── */
+    #sidebar { grid-row: 1 / -1; background: var(--sidebar-deep); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow: hidden; box-shadow: 2px 0 16px rgba(0,0,0,.15); transition: transform 0.3s ease; }
+    .sb-brand { display: flex; align-items: center; gap: 11px; padding: 0 20px; height: var(--topbar-h); border-bottom: 1px solid rgba(255,255,255,.06); flex-shrink: 0; }
+    .sb-logo-mark { width: 36px; height: 36px; border-radius: 9px; background: linear-gradient(135deg, var(--gold), #a0722a); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .sb-logo-mark svg { width: 20px; height: 20px; fill: var(--white); }
+    .sb-brand-text { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: var(--white); letter-spacing: -0.01em; line-height: 1.1; }
+    .sb-brand-text em { color: var(--gold); font-style: normal; }
+    .sb-nav { flex: 1; padding: 18px 12px; display: flex; flex-direction: column; gap: 3px; overflow-y: auto; }
+    .sb-nav-label { font-size: .65rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.25); padding: 0 10px; margin-bottom: 6px; margin-top: 10px; }
+    .nav-btn { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: var(--radius-md); border: none; background: transparent; cursor: pointer; color: rgba(255,255,255,.55); font-family: var(--font-body); font-size: .88rem; font-weight: 500; text-align: left; width: 100%; transition: background var(--transition), color var(--transition); position: relative; }
+    .nav-btn:hover { background: var(--sidebar-hover); color: rgba(255,255,255,.85); }
+    .nav-btn.active { background: var(--sidebar-active); color: var(--white); }
+    .nav-btn.active::before { content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 3px; border-radius: 0 3px 3px 0; background: var(--gold); }
+    .nav-btn .nav-icon { width: 18px; height: 18px; flex-shrink: 0; opacity: .7; }
+    .nav-btn.active .nav-icon { opacity: 1; }
+
+    .sb-profile { padding: 14px 14px 10px; border-top: 1px solid rgba(255,255,255,.07); flex-shrink: 0; }
+    .profile-card { display: flex; align-items: flex-start; gap: 10px; padding: 12px; background: rgba(255,255,255,.05); border-radius: var(--radius-md); margin-bottom: 10px; }
+    .avatar-circle { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), #a0722a); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: .8rem; font-weight: 600; color: var(--white); flex-shrink: 0; }
+    .profile-info { flex: 1; min-width: 0; }
+    .profile-name { font-size: .88rem; font-weight: 600; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: capitalize; }
+    .profile-role { font-size: .72rem; color: rgba(255,255,255,.4); margin-top: 1px; }
+    .class-pill { display: inline-flex; align-items: center; margin-top: 6px; padding: 2px 8px; border-radius: 100px; background: rgba(46,125,82,.35); border: 1px solid rgba(46,125,82,.5); font-size: .68rem; font-weight: 600; color: #7fd4a4; }
+    .signout-btn { width: 100%; padding: 9px 12px; background: transparent; border: 1px solid rgba(255,255,255,.12); border-radius: var(--radius-md); color: rgba(255,255,255,.45); font-family: var(--font-body); font-size: .8rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; transition: all var(--transition); }
+    .signout-btn:hover { background: rgba(192,57,43,.2); border-color: rgba(192,57,43,.4); color: #e88a80; }
+
+    /* ── TOPBAR ── */
+    #topbar { background: var(--white); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 28px; box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 100; overflow: visible; }
+    .topbar-left { display: flex; flex-direction: column; }
+    #headerTitle { font-family: var(--font-display); font-size: 1.1rem; font-weight: 600; color: var(--text-primary); letter-spacing: -.01em; }
+    .breadcrumb { font-size: .72rem; color: var(--text-muted); margin-top: 1px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .status-dot-wrap { position: relative; width: 36px; height: 36px; flex-shrink: 0; overflow: visible; }
+    .status-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--sidebar-mid), var(--sidebar-active)); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: .7rem; font-weight: 500; color: var(--white); }
+    .status-online { position: absolute; bottom: 1px; right: 1px; width: 10px; height: 10px; border-radius: 50%; background: #2ecc71; border: 2px solid var(--white); pointer-events: none; z-index: 1; }
+
+    /* ── MAIN LAYOUT PANELS ── */
+    #main-content { padding: 28px; overflow-y: auto; height: calc(100vh - var(--topbar-h)); background: var(--canvas); }
+    .view-panel { display: none; }
+    .view-panel.active { display: block; animation: fadeIn 0.22s ease both; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .section-heading { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 20px; gap: 12px; flex-wrap: wrap; }
+    .section-heading h2 { font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; color: var(--text-primary); letter-spacing: -.02em; }
+    .section-heading p { font-size: .8rem; color: var(--text-muted); margin-top: 2px; }
+
+    .card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden; }
+    .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .card-title { font-family: var(--font-display); font-size: .98rem; font-weight: 600; color: var(--text-primary); }
+
+    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; border-radius: var(--radius-md); font-family: var(--font-body); font-size: .82rem; font-weight: 600; border: none; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+    .btn-primary { background: var(--sidebar-mid); color: var(--white); }
+    .btn-primary:hover:not(:disabled) { background: var(--sidebar-deep); box-shadow: 0 4px 12px rgba(13,43,26,.15); }
+    .btn-gold { background: var(--gold); color: var(--white); }
+    .btn-gold:hover:not(:disabled) { background: #b0802e; }
+    .btn-outline { background: transparent; border: 1.5px solid var(--border-dark); color: var(--text-secondary); }
+    .btn-outline:hover:not(:disabled) { border-color: var(--sidebar-mid); color: var(--sidebar-mid); }
+    .btn-success { background: var(--success); color: var(--white); }
+    .btn-success:hover:not(:disabled) { background: #256645; }
+    .btn-sm { padding: 6px 12px; font-size: .78rem; }
+
+
+
+    /* ── GO-LIVE PORTAL CONTROL ANIMATIONS ── */
+    .portal-control-bar {
+      position: relative;
+      overflow: hidden;
+      transition: background 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+    }
+    .portal-control-bar::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+      background: linear-gradient(90deg, transparent 0%, rgba(200,151,58,0.07) 50%, transparent 100%);
+      background-size: 200% 100%;
+    }
+    .portal-control-bar.is-live {
+      background: linear-gradient(135deg, #f0fff6 0%, #e8f5ee 100%) !important;
+      border-left-color: var(--success) !important;
+      box-shadow: 0 0 0 1px rgba(46,125,82,0.12), 0 4px 20px rgba(46,125,82,0.08);
+    }
+    .portal-control-bar.is-live::before {
+      opacity: 1;
+    }
+    .portal-control-bar.is-draft {
+      background: #fffdf9 !important;
+      border-left-color: var(--gold) !important;
+    }
+
+    /* Pulsing live dot */
+    .live-pulse-dot {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 10px;
+      height: 10px;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .live-pulse-dot .dot-core {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #2ecc71;
+      position: relative;
+      z-index: 1;
+    }
+    .live-pulse-dot .dot-ring {
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 2px solid #2ecc71;
+      opacity: 0;
+      animation: liveRingPulse 2s ease-out infinite;
+    }
+    .live-pulse-dot .dot-ring:nth-child(2) { animation-delay: 0.7s; }
+    @keyframes liveRingPulse {
+      0%   { transform: scale(0.5); opacity: 0.8; }
+      100% { transform: scale(2.2); opacity: 0; }
+    }
+
+    /* Draft dot */
+    .draft-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--danger);
+      flex-shrink: 0;
+      animation: draftBlink 1.8s ease-in-out infinite;
+    }
+    @keyframes draftBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* Status text animation */
+    #visibilityStatusText {
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    #visibilityStatusText.updating {
+      opacity: 0;
+      transform: translateX(-6px);
+    }
+
+    /* Toggle button animations */
+    #toggleVisibilityBtn {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    #toggleVisibilityBtn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.25);
+      transform: translateX(-110%) skewX(-15deg);
+      transition: transform 0s;
+    }
+    #toggleVisibilityBtn.shimmer::after {
+      animation: btnShimmer 0.6s ease forwards;
+    }
+    @keyframes btnShimmer {
+      from { transform: translateX(-110%) skewX(-15deg); }
+      to   { transform: translateX(130%) skewX(-15deg); }
+    }
+
+    /* Publish confirmation burst */
+    .publish-burst {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 10;
+    }
+    .publish-burst svg {
+      width: 56px;
+      height: 56px;
+      opacity: 0;
+    }
+    .publish-burst.animate svg {
+      animation: burstPop 0.7s cubic-bezier(0.22,1,0.36,1) forwards;
+    }
+    @keyframes burstPop {
+      0%   { opacity: 0; transform: scale(0.2) rotate(-15deg); }
+      55%  { opacity: 1; transform: scale(1.15) rotate(4deg); }
+      80%  { transform: scale(0.95) rotate(-2deg); }
+      100% { opacity: 0; transform: scale(1.1) rotate(0deg); }
+    }
+
+    /* Confetti particles */
+    .confetti-container {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      border-radius: inherit;
+      z-index: 5;
+    }
+    .confetti-particle {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 1px;
+      opacity: 0;
+    }
+    .confetti-particle.animate {
+      animation: confettiFall 1.1s ease-out forwards;
+    }
+    @keyframes confettiFall {
+      0%   { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+      100% { opacity: 0; transform: translateY(60px) rotate(720deg) scale(0.4); }
+    }
+
+    /* Updating spinner state */
+    #toggleVisibilityBtn.is-updating {
+      pointer-events: none;
+      opacity: 0.75;
+    }
+    .btn-spinner {
+      width: 13px;
+      height: 13px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    /* Slide-in status text */
+    @keyframes statusSlideIn {
+      from { opacity: 0; transform: translateX(-8px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    .status-slide-in {
+      animation: statusSlideIn 0.4s ease forwards;
+    }
+
+    /* ── TOAST ── */
+    #toast { position: fixed; bottom: 28px; right: 28px; background: var(--sidebar-deep); color: var(--white); padding: 12px 18px; border-radius: var(--radius-md); font-size: .84rem; font-weight: 500; display: flex; align-items: flex-start; gap: 8px; box-shadow: var(--shadow-lg); z-index: 9998; transform: translateY(150%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); max-width: 340px; }
+    #toast.show { transform: translateY(0); }
+    #toast-msg { line-height: 1.5; white-space: pre-line; }
+
+    /* ── STUDENT SELECTOR ── */
+    .student-selector-wrap { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 18px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .student-selector-label { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-secondary); white-space: nowrap; }
+    .student-select { flex: 1; min-width: 220px; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-md); font-family: var(--font-body); font-size: .9rem; color: var(--text-primary); outline: none; background: var(--canvas); appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238fa396' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 36px; }
+    .student-select:focus { border-color: var(--sidebar-mid); box-shadow: 0 0 0 3px rgba(19,61,38,.1); }
+    .selected-student-badge { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--sage); border-radius: var(--radius-md); border: 1px solid var(--border-dark); font-size: .82rem; color: var(--sidebar-mid); font-weight: 600; }
+    .selected-student-badge .badge-exam { font-family: var(--font-mono); font-size: .72rem; font-weight: 400; color: var(--text-muted); margin-left: 4px; }
+
+    /* ── DATA ENTRY TABLES ── */
+    .score-table-wrap, .registry-table-wrap, .performance-table-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); background: var(--white); }
+    .score-table, .registry-table, .performance-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    .score-table thead, .registry-table thead, .performance-table thead { background: var(--sage); }
+    .score-table thead th, .registry-table thead th, .performance-table thead th { padding: 12px 14px; text-align: left; font-size: .72rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text-secondary); border-bottom: 1px solid var(--border); white-space: nowrap; }
+    .score-table tbody tr, .registry-table tbody tr, .performance-table tbody tr { border-bottom: 1px solid var(--border); transition: background var(--transition); }
+    .score-table tbody tr:hover, .registry-table tbody tr:hover, .performance-table tbody tr:hover { background: #f9faf9; }
+    .score-table tbody td, .registry-table tbody td, .performance-table tbody td { padding: 12px 14px; vertical-align: middle; }
+    .subject-label { font-weight: 600; color: var(--text-primary); font-size: .88rem; }
+    .subject-code { font-family: var(--font-mono); font-size: .7rem; color: var(--text-muted); margin-top: 1px; }
+
+    .score-input { width: 68px; padding: 6px 10px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: .85rem; text-align: center; outline: none; }
+    .score-input:focus { border-color: var(--sidebar-mid); box-shadow: 0 0 0 3px rgba(19,61,38,.1); }
+    .score-input.error { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(192,57,43,.12); }
+    .total-cell { font-family: var(--font-mono); font-size: .9rem; font-weight: 600; }
+    .total-cell.zero { color: var(--text-muted); font-weight: 400; }
+
+    .grade-badge { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; font-family: var(--font-mono); font-size: .78rem; font-weight: 700; }
+    .grade-A { background: #d1fae5; color: #065f46; }
+    .grade-B { background: #dbeafe; color: #1e3a8a; }
+    .grade-C { background: #e0f2fe; color: #075985; }
+    .grade-D { background: #fef3c7; color: #92400e; }
+    .grade-E { background: #ffedd5; color: #9a3412; }
+    .grade-F { background: #fee2e2; color: #991b1b; }
+    .grade-none { background: var(--sage); color: var(--text-muted); font-weight: 400; }
+
+    .table-footer { padding: 12px 20px; background: var(--sage); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .table-footer-info { font-size: .84rem; font-weight: 500; }
+
+    /* ── BULK UPLOAD ZONE ── */
+    .bulk-upload-section { margin-top: 20px; }
+    .bulk-upload-zone { border: 2px dashed var(--border-dark); border-radius: var(--radius-lg); padding: 28px 20px; text-align: center; background: var(--white); transition: border-color var(--transition), background var(--transition); cursor: pointer; }
+    .bulk-upload-zone.drag-over { border-color: var(--sidebar-mid); background: var(--sage); }
+    .bulk-upload-zone svg { width: 36px; height: 36px; color: var(--text-muted); margin: 0 auto 10px; display: block; }
+    .bulk-upload-zone h4 { font-family: var(--font-display); font-size: .95rem; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+    .bulk-upload-zone p { font-size: .8rem; color: var(--text-muted); margin-bottom: 14px; }
+    .bulk-upload-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    #csvFileInput { display: none; }
+    .bulk-upload-feedback { margin-top: 12px; font-size: .8rem; color: var(--success); font-weight: 500; min-height: 20px; }
+
+    /* ── MOBILE SUBJECT EXPANDABLES ── */
+    .msb-list { display: none; flex-direction: column; gap: 10px; }
+    .msb-row { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-sm); }
+    .msb-trigger { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: none; border: none; width: 100%; cursor: pointer; }
+    .msb-trigger:hover { background: var(--sage); }
+    .msb-subject-name { flex: 1; font-weight: 600; font-size: .88rem; color: var(--text-primary); text-align: left; }
+    .msb-total-bubble { width: 34px; height: 34px; border-radius: 50%; background: var(--sage); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: .78rem; font-weight: 600; color: var(--sidebar-mid); }
+    .msb-chevron { width: 18px; height: 18px; color: var(--text-muted); transition: transform var(--transition); flex-shrink: 0; }
+    .msb-row.open .msb-chevron { transform: rotate(180deg); }
+    .msb-drawer { max-height: 0; overflow: hidden; transition: max-height 0.28s ease-out; }
+    .msb-row.open .msb-drawer { max-height: 180px; }
+    .msb-drawer-inner { padding: 14px 16px; border-top: 1px solid var(--border); background: var(--sage); display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .msb-field label { display: block; font-size: .7rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 5px; }
+    .msb-field .score-input { width: 100%; }
+
+    /* ── SESSION / TERM CONTEXT BAR ── */
+    .session-bar { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 20px; margin-bottom: 18px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .session-bar-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-secondary); white-space: nowrap; }
+    .session-select { padding: 7px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-md); font-family: var(--font-body); font-size: .85rem; color: var(--text-primary); outline: none; background: var(--canvas); appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238fa396' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px; cursor: pointer; }
+    .session-select:focus { border-color: var(--sidebar-mid); box-shadow: 0 0 0 3px rgba(19,61,38,.1); }
+    .term-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+    .term-pill { padding: 6px 14px; border-radius: 100px; border: 1.5px solid var(--border-dark); background: transparent; font-family: var(--font-body); font-size: .78rem; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: all var(--transition); }
+    .term-pill:hover { border-color: var(--sidebar-mid); color: var(--sidebar-mid); }
+    .term-pill.active { background: var(--sidebar-mid); border-color: var(--sidebar-mid); color: var(--white); }
+    .session-context-badge { margin-left: auto; padding: 5px 12px; border-radius: 100px; background: var(--sage); border: 1px solid var(--border-dark); font-size: .72rem; font-weight: 700; color: var(--sidebar-mid); font-family: var(--font-mono); white-space: nowrap; }
+
+    /* ── HISTORY MODAL ── */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(13,43,26,.45); backdrop-filter: blur(3px); z-index: 8000; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+    .modal-backdrop.open { opacity: 1; pointer-events: all; }
+    .modal-box { background: var(--white); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); width: 100%; max-width: 760px; max-height: 88vh; display: flex; flex-direction: column; transform: translateY(12px); transition: transform 0.25s ease; }
+    .modal-backdrop.open .modal-box { transform: translateY(0); }
+    .modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-shrink: 0; }
+    .modal-title { font-family: var(--font-display); font-size: 1.05rem; font-weight: 600; color: var(--text-primary); }
+    .modal-subtitle { font-size: .78rem; color: var(--text-muted); margin-top: 3px; }
+    .modal-close { width: 32px; height: 32px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); background: var(--white); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-muted); flex-shrink: 0; }
+    .modal-close:hover { border-color: var(--danger); color: var(--danger); }
+    .modal-body { padding: 20px 24px; overflow-y: auto; flex: 1; }
+    .history-term-section { margin-bottom: 24px; }
+    .history-term-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .history-term-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .history-subject-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+    .history-subject-card { background: var(--sage); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 12px; }
+    .history-subject-name { font-size: .78rem; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+    .history-scores { display: flex; gap: 10px; align-items: center; }
+    .history-score-chip { font-family: var(--font-mono); font-size: .72rem; color: var(--text-secondary); }
+    .history-total { font-family: var(--font-mono); font-size: .9rem; font-weight: 700; color: var(--sidebar-mid); margin-left: auto; }
+    .history-loading { text-align: center; padding: 32px; color: var(--text-muted); font-size: .85rem; }
+    .history-empty { text-align: center; padding: 32px; color: var(--text-muted); font-size: .85rem; }
+
+    /* ── HISTORY ROSTER GRID ── */
+    .history-roster-grid { display: flex; flex-direction: column; gap: 12px; }
+    .history-roster-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden; transition: border-color var(--transition); width: 100%; }
+    .history-roster-card.has-results { border-color: var(--sage-dark); }
+    .history-roster-card.is-editing { border-color: var(--sidebar-mid); box-shadow: 0 0 0 3px rgba(19,61,38,.08); }
+    .history-roster-card-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; user-select: none; }
+    .history-roster-card-header:hover { background: var(--sage); }
+    .hrcard-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg,var(--sidebar-mid),var(--sidebar-active)); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: .72rem; font-weight: 700; color: var(--white); flex-shrink: 0; }
+    .hrcard-info { flex: 1; min-width: 0; }
+    .hrcard-name { font-weight: 600; font-size: .9rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hrcard-exam { font-family: var(--font-mono); font-size: .7rem; color: var(--text-muted); margin-top: 2px; }
+    .hrcard-status { flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+    @media (max-width: 600px) {
+      .history-roster-card-header { flex-wrap: wrap; gap: 8px; padding: 12px 14px; position: relative; }
+      .hrcard-info { min-width: 0; flex: 1 1 calc(100% - 52px); }
+      .hrcard-name { font-size: .85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .hrcard-status { flex: 1 1 100%; justify-content: flex-start; gap: 6px; flex-wrap: wrap; margin-left: 44px; padding-bottom: 2px; }
+      .hrcard-position { font-size: .63rem; padding: 2px 7px; }
+      .hrcard-avg { font-size: .78rem; }
+      .hrcard-pill { font-size: .62rem; padding: 2px 7px; }
+      .hrcard-chevron { position: absolute; right: 14px; top: 16px; }
+    }
+    .hrcard-avg { font-family: var(--font-mono); font-size:.85rem; font-weight:700; color:var(--sidebar-mid); }
+    .hrcard-overall-grade { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; font-family: var(--font-mono); font-size: .78rem; font-weight: 700; flex-shrink: 0; }
+    .hrcard-pill { padding: 3px 9px; border-radius: 100px; font-size: .68rem; font-weight: 700; text-transform: uppercase; }
+    .hrcard-pill.filled { background: var(--success-bg); color: var(--success); border: 1px solid rgba(46,125,82,.2); }
+    .hrcard-pill.empty  { background: var(--warning-bg); color: var(--warning); border: 1px solid rgba(180,83,9,.2); }
+    .hrcard-chevron { width: 16px; height: 16px; color: var(--text-muted); transition: transform var(--transition); flex-shrink:0; }
+    .history-roster-card.is-editing .hrcard-chevron { transform: rotate(180deg); }
+
+    .hrcard-editor { max-height: 0; overflow: hidden; transition: max-height 0.35s ease-out; }
+    .history-roster-card.is-editing .hrcard-editor { max-height: 2400px; }
+    .hrcard-editor-inner { border-top: 1px solid var(--border); padding: 16px; background: #f9fdfb; }
+    .hrcard-editor-table { width: 100%; border-collapse: collapse; font-size: .82rem; margin-bottom: 14px; table-layout: fixed; }
+    .hrcard-editor-table thead th { padding: 7px 10px; text-align: left; font-size: .68rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+    .hrcard-editor-table thead th:nth-child(1) { width: auto; }
+    .hrcard-editor-table thead th:nth-child(2),
+    .hrcard-editor-table thead th:nth-child(3) { width: 80px; }
+    .hrcard-editor-table thead th:nth-child(4) { width: 58px; text-align: center; }
+    .hrcard-editor-table thead th:nth-child(5) { width: 46px; text-align: center; }
+    .hrcard-editor-table tbody td:nth-child(4) { text-align: center; }
+    .hrcard-editor-table tbody td:nth-child(5) { text-align: center; }
+    .hrcard-editor-table tbody td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .hrcard-editor-table tbody tr:last-child td { border-bottom: none; }
+    .hrcard-score-input { width: 100%; max-width: 70px; padding: 5px 8px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: .82rem; text-align: center; outline: none; box-sizing: border-box; }
+    .hrcard-score-input:focus { border-color: var(--sidebar-mid); box-shadow: 0 0 0 2px rgba(19,61,38,.1); }
+    .hrcard-save-row { display: flex; justify-content: flex-end; gap: 8px; }
+
+    /* ── HISTORY STUDENT SELECT (legacy, now hidden) ── */
+    #historyStudentSelect { display: none; }
+
+    /* ── POSITION / RANK BADGE ── */
+    .hrcard-position { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 100px; font-family: var(--font-mono); font-size: .68rem; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+    .hrcard-position.pos-1  { background: #fef9c3; color: #92400e; border: 1px solid #fde68a; }
+    .hrcard-position.pos-2  { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
+    .hrcard-position.pos-3  { background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; }
+    .hrcard-position.pos-mid { background: var(--sage); color: var(--sidebar-mid); border: 1px solid var(--border-dark); }
+    .hrcard-position.pos-none { background: var(--sage); color: var(--text-muted); border: 1px solid var(--border); }
+    .hrcard-position svg { width: 10px; height: 10px; flex-shrink: 0; }
+    /* Registry position column */
+    .pos-badge { display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 3px 9px; border-radius: 100px; font-family: var(--font-mono); font-size: .72rem; font-weight: 700; white-space: nowrap; }
+    .pos-badge.gold   { background: #fef9c3; color: #92400e; border: 1px solid #fde68a; }
+    .pos-badge.silver { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
+    .pos-badge.bronze { background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; }
+    .pos-badge.normal { background: var(--sage); color: var(--sidebar-mid); border: 1px solid var(--border-dark); }
+    .pos-badge.none   { background: var(--sage); color: var(--text-muted); border: 1px solid var(--border); font-style: italic; }
+    /* Year summary chip in registry */
+    .reg-year-summary { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .reg-summary-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 100px; font-size: .7rem; font-weight: 600; background: var(--sage); color: var(--sidebar-mid); border: 1px solid var(--border-dark); }
+
+    /* ── ANALYTICS FILTER BAR ── */
+    .analytics-filter-bar { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 20px; margin-bottom: 20px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .analytics-filter-bar .session-bar-label { min-width: fit-content; }
+    .analytics-student-select { flex: 1; min-width: 200px; padding: 7px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-md); font-family: var(--font-body); font-size: .85rem; color: var(--text-primary); outline: none; background: var(--canvas); appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238fa396' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px; }
+    .analytics-student-select:focus { border-color: var(--sidebar-mid); box-shadow: 0 0 0 3px rgba(19,61,38,.1); }
+    .analytics-loading { display: flex; align-items: center; gap: 8px; font-size: .82rem; color: var(--text-muted); padding: 8px 0; }
+    .analytics-loading .spinner-ring { width: 16px; height: 16px; border-width: 2px; }
+    .stat-card-count { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-sm); border-left: 4px solid var(--sidebar-mid); }
+
+    /* ── REGISTRY YEAR SECTIONS ── */
+    .reg-year-section { margin-bottom: 28px; }
+    .reg-year-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; padding: 12px 16px; background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+    .reg-year-title { display: flex; align-items: center; gap: 10px; }
+    .reg-year-badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 100px; background: linear-gradient(135deg, var(--sidebar-mid), var(--sidebar-active)); color: #fff; font-family: var(--font-mono); font-size: .78rem; font-weight: 700; letter-spacing: .04em; }
+    .reg-year-count { font-size: .8rem; color: var(--text-muted); }
+    .reg-year-export { display: flex; gap: 8px; }
+
+    /* ── REGISTRY ELEMENTS ── */
+    .form-drawer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+    .form-drawer.open { max-height: 420px; }
+    .form-drawer-inner { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin-bottom: 16px; }
+    .form-grid label { display: block; font-size: .72rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 5px; }
+    .form-input { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-family: var(--font-body); font-size: .85rem; outline: none; }
+    .form-input:focus { border-color: var(--sidebar-mid); box-shadow: 0 0 0 3px rgba(19,61,38,.1); }
+    .auto-gen-note { font-size: .72rem; color: var(--text-muted); font-style: italic; margin-top: 4px; }
+    .student-name-cell { font-weight: 600; color: var(--text-primary); }
+    .student-class-badge { display: inline-flex; padding: 3px 9px; border-radius: 100px; background: var(--sage); color: var(--sidebar-mid); font-size: .72rem; font-weight: 700; }
+    .pin-cell, .exam-num-cell { font-family: var(--font-mono); font-size: .82rem; color: var(--text-secondary); }
+    .action-icons { display: flex; gap: 6px; }
+    .action-icon-btn { width: 30px; height: 30px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); background: var(--white); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
+    .action-icon-btn:hover { border-color: var(--sidebar-mid); color: var(--sidebar-mid); }
+    .action-icon-btn svg { width: 13px; height: 13px; }
+    .empty-state { padding: 48px 20px; text-align: center; }
+    .empty-state svg { width: 44px; height: 44px; color: var(--border-dark); margin: 0 auto 12px; display: block; }
+    .empty-state h3 { font-family: var(--font-display); font-size: 1rem; color: var(--text-secondary); margin-bottom: 6px; }
+    .empty-state p { font-size: .82rem; color: var(--text-muted); }
+
+    /* ── ANALYTICS CARDS ── */
+    .analytics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-sm); border-left: 4px solid var(--border-dark); }
+    .stat-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+    .stat-value { font-family: var(--font-mono); font-size: 2rem; font-weight: 500; color: var(--text-primary); line-height: 1; }
+    .stat-sub { font-size: .78rem; color: var(--text-secondary); margin-top: 8px; }
+    .stat-card.accent-green { border-left-color: var(--success); }
+    .stat-card.accent-gold  { border-left-color: var(--gold); }
+    .stat-card.accent-blue  { border-left-color: #3b82f6; }
+    .stat-card.accent-red   { border-left-color: var(--danger); }
+    .progress-bar-wrap { display: flex; align-items: center; gap: 10px; }
+    .progress-bar-bg { flex: 1; height: 6px; border-radius: 3px; background: var(--sage-dark); overflow: hidden; }
+    .progress-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--sidebar-mid), #27ae60); transition: width 0.4s ease; }
+    .progress-pct { font-family: var(--font-mono); font-size: .78rem; color: var(--text-muted); width: 34px; text-align: right; }
+
+    /* ── REGISTRY TOOLBAR — header action group ── */
+    .registry-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 499; }
+    #sidebar-overlay.show { display: block; }
+
+    /* ── MOBILE MEDIA QUERIES ── */
+    @media (max-width: 768px) {
+      #app { grid-template-columns: 1fr; grid-template-rows: var(--topbar-h) 1fr; }
+      #sidebar { position: fixed; left: -240px; top: 0; bottom: 0; width: 240px; z-index: 500; transition: left 0.25s ease-out; }
+      #sidebar.mobile-open { left: 0; }
+      #topbar, #main-content { grid-column: 1; }
+      #topbar { padding: 0 16px; }
+      #main-content { padding: 16px; }
+      .score-table-wrap { display: none; }
+      .msb-list { display: flex; }
+      .mobile-menu-btn { display: flex !important; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); background: var(--white); cursor: pointer; }
+      .analytics-grid { grid-template-columns: 1fr 1fr; }
+      .student-selector-wrap { flex-direction: column; align-items: stretch; }
+      .bulk-upload-actions { flex-direction: column; align-items: stretch; }
+      .registry-toolbar { flex-wrap: wrap; }
+      /* Hide the online indicator dot on mobile — prevents it leaking outside topbar */
+      .status-online { display: none; }
+    }
+    @media (min-width: 769px) {
+      .mobile-menu-btn { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="auth-overlay">
+    <div class="auth-spinner">
+      <div class="sb-brand-text" style="font-size:1.4rem; color:white;"><em>Edu</em>Portal NG</div>
+      <div class="spinner-ring"></div>
+      <p class="auth-hint">Connecting cloud records…</p>
+    </div>
+  </div>
+
+  <div id="sidebar-overlay"></div>
+
+  <div id="toast">
+    <span id="toast-msg">Database loaded successfully.</span>
+  </div>
+
+  <!-- ── SCORE HISTORY MODAL ── -->
+  <div class="modal-backdrop" id="historyModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="historyModalTitle">Score History</div>
+          <div class="modal-subtitle" id="historyModalSubtitle">All recorded terms for this student</div>
+        </div>
+        <button class="modal-close" id="historyModalClose">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body" id="historyModalBody">
+        <div class="history-loading">Loading records…</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="app">
+
+    <!-- ── SIDEBAR ── -->
+    <aside id="sidebar">
+      <div class="sb-brand">
+        <div class="sb-logo-mark">
+          <svg viewBox="0 0 24 24"><path d="M12 3L2 8l10 5 10-5-10-5zM2 14.5l10 5 10-5M2 19l10 5 10-5"/></svg>
+        </div>
+        <div class="sb-brand-text"><em>Edu</em>Portal NG</div>
+      </div>
+
+      <nav class="sb-nav">
+        <div class="sb-nav-label">Navigation</div>
+        <button class="nav-btn active" data-view="upload" id="btn-upload">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Upload Results
+        </button>
+        <button class="nav-btn" data-view="registry" id="btn-registry">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>
+          Student Registry
+        </button>
+        <button class="nav-btn" data-view="analytics" id="btn-analytics">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Class Analytics
+        </button>
+        <button class="nav-btn" data-view="history" id="btn-history">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Score History
+        </button>
+      </nav>
+
+      <div class="sb-profile">
+        <div class="profile-card">
+          <div class="avatar-circle" id="sidebarInitials">??</div>
+          <div class="profile-info">
+            <div class="profile-name" id="sidebarStaffName">Loading…</div>
+            <div class="profile-role">Subject Teacher</div>
+            <div class="class-pill" id="sidebarClass">Class: —</div>
+          </div>
+        </div>
+        <button class="signout-btn" id="signoutBtn">Sign Out</button>
+      </div>
+    </aside>
+
+    <!-- ── TOPBAR ── -->
+    <header id="topbar">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="topbar-left">
+          <div id="headerTitle">Result Entry Sheet</div>
+          <div class="breadcrumb" id="headerBreadcrumb">Dashboard › Upload Results</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="status-dot-wrap">
+          <div class="status-avatar" id="headerInitials">??</div>
+          <div class="status-online"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── MAIN CONTENT ── -->
+    <div id="main-content">
+
+      <!-- ════════════════════════════════════════════
+           VIEW: Upload Results
+      ════════════════════════════════════════════ -->
+      <div id="view-upload" class="view-panel active">
+
+
+
+        <!-- Session / Term Context Bar -->
+        <div class="session-bar" id="sessionBar">
+          <span class="session-bar-label">
+            <svg style="display:inline;width:13px;height:13px;vertical-align:-2px;margin-right:4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Session
+          </span>
+          <select class="session-select" id="sessionSelect"></select>
+          <span class="session-bar-label" style="margin-left:8px;">Term</span>
+          <div class="term-pills" id="termPills">
+            <button class="term-pill active" data-term="First">First</button>
+            <button class="term-pill" data-term="Second">Second</button>
+            <button class="term-pill" data-term="Third">Third</button>
+          </div>
+          <div class="session-context-badge" id="sessionContextBadge">2025-2026 · First Term</div>
+        </div>
+
+        <!-- Result live -->
+        <div class="session-bar portal-control-bar is-draft" style="border-left: 4px solid var(--gold); background: #fffdf9; position: relative;">
+          <!-- Confetti container -->
+          <div class="confetti-container" id="confettiContainer"></div>
+          <!-- Burst icon -->
+          <div class="publish-burst" id="publishBurst">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#2e7d52" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+
+          <span class="session-bar-label" style="color: var(--sidebar-mid); display:flex; align-items:center; gap:6px;">
+            <svg style="width:14px;height:14px;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            Portal Access Control
+          </span>
+          <div style="display: flex; align-items: center; gap: 12px; margin-left: 10px; flex-wrap: wrap;">
+            <button class="btn btn-outline btn-sm" id="toggleVisibilityBtn" style="font-weight: 700;">
+              <span class="btn-spinner"></span> Checking…
+            </button>
+            <span id="visibilityStatusText" style="font-size: 0.8rem; color: var(--text-secondary); font-style: italic; display:flex; align-items:center; gap:6px;">
+              Syncing with live database...
+            </span>
+          </div>
+        </div>
+
+        <!-- Student Selector -->
+        <div class="student-selector-wrap">
+          <span class="student-selector-label">
+            <svg style="display:inline;width:14px;height:14px;vertical-align:-2px;margin-right:5px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Select Student
+          </span>
+          <select class="student-select" id="studentSelectDropdown">
+            <option value="">— Choose a student to load their sheet —</option>
+          </select>
+          <div class="selected-student-badge" id="selectedStudentBadge" style="display:none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span id="selectedStudentName">—</span>
+            <span class="badge-exam" id="selectedStudentExam">—</span>
+          </div>
+        </div>
+
+        <div class="section-heading">
+          <div>
+            <h2>Subject Score Entry Sheet</h2>
+            <p><span id="sessionYearDisplay">2025/2026</span> Academic Session · <span id="sessionTermDisplay">First Term</span> · <span id="lockedClassName">—</span></p>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-outline btn-sm" id="clearScoresBtn">Clear All</button>
+            <button class="btn btn-success btn-sm" id="saveScoresBtn" disabled>Save &amp; Commit Result Sheet</button>
+          </div>
+        </div>
+
+        <!-- Desktop score table -->
+        <div class="score-table-wrap">
+          <table class="score-table">
+            <thead>
+              <tr>
+                <th>Subject Name</th>
+                <th>CA Score /30</th>
+                <th>Exam Score /70</th>
+                <th>Total</th>
+                <th>Grade</th>
+              </tr>
+            </thead>
+            <tbody id="scoreTableBody"></tbody>
+          </table>
+          <div class="table-footer">
+            <span class="table-footer-info">Average Total Score: <strong id="avgScoreDisplay">—</strong></span>
+          </div>
+        </div>
+
+        <!-- Mobile card list -->
+        <div class="msb-list" id="msbList"></div>
+
+        <!-- Bulk CSV Upload Zone -->
+        <div class="bulk-upload-section">
+          <div class="section-heading" style="margin-top:24px; margin-bottom:12px;">
+            <div>
+              <h2 style="font-size:1rem;">Batch Score Upload</h2>
+              <p>Download the template (pre-filled with all students &amp; subjects), fill in scores, then upload.</p>
+            </div>
+          </div>
+          <div class="bulk-upload-zone" id="bulkDropZone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="12" y2="12"/><line x1="15" y1="15" x2="12" y2="12"/>
+            </svg>
+            <h4>Drag &amp; Drop Excel File Here</h4>
+            <p>Supported formats: .xlsx (Excel) or .csv — download the template first</p>
+            <div class="bulk-upload-actions">
+              <button class="btn btn-outline btn-sm" id="downloadTemplateBtn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download Template
+              </button>
+              <button class="btn btn-primary btn-sm" id="uploadCsvBtn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Upload CSV
+              </button>
+              <input type="file" id="csvFileInput" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+            </div>
+            <div class="bulk-upload-feedback" id="bulkFeedback"></div>
+          </div>
+        </div>
+
+      </div><!-- /#view-upload -->
+
+      <!-- ════════════════════════════════════════════
+           VIEW: Student Registry
+      ════════════════════════════════════════════ -->
+      <div id="view-registry" class="view-panel">
+        <div class="section-heading">
+          <div>
+            <h2 id="registryHeading">Student Registry</h2>
+            <p>Onboard and audit registered students</p>
+          </div>
+          <!-- Registry Toolbar: Add New Student only (export is per-year) -->
+          <div class="registry-toolbar">
+            <button class="btn btn-primary btn-sm" id="addStudentToggleBtn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add New Student
+            </button>
+          </div>
+        </div>
+
+        <!-- Registration Drawer: Full Name + Academic Year -->
+        <div class="form-drawer" id="addStudentDrawer">
+          <div class="form-drawer-inner">
+            <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:14px;">
+              <div>
+                <label>First &amp; Last Name *</label>
+                <input type="text" class="form-input" id="newStudentName" placeholder="e.g. Adaeze Okonkwo" autocomplete="off" />
+              </div>
+              <div>
+                <label>Academic Year *</label>
+                <select class="form-input" id="newStudentYear" style="appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238fa396' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 10px center;padding-right:32px;"></select>
+              </div>
+            </div>
+            <p class="auto-gen-note">
+              ⚙ Exam Identifier (SAGE/2026/XXXX) and secure 6-digit Access PIN are auto-generated on save.
+            </p>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+              <button class="btn btn-outline btn-sm" id="cancelAddStudentBtn">Cancel</button>
+              <button class="btn btn-primary btn-sm" id="onboardStudentBtn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                Onboard Student
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Year-grouped registry sections rendered by JS -->
+        <div id="registryYearSections"></div>
+
+      </div>
+
+      <!-- ════════════════════════════════════════════
+           VIEW: Class Analytics
+      ════════════════════════════════════════════ -->
+      <div id="view-analytics" class="view-panel">
+        <div class="section-heading">
+          <div>
+            <h2 id="analyticsHeading">Class Performance Metrics</h2>
+            <p>Live classroom intelligence dashboards</p>
+          </div>
+          <button class="btn btn-outline btn-sm" id="refreshAnalyticsBtn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            Refresh
+          </button>
+        </div>
+
+        <!-- Analytics filter bar -->
+        <div class="analytics-filter-bar">
+          <span class="session-bar-label">Session</span>
+          <select class="session-select" id="analyticsSessionSelect"></select>
+          <span class="session-bar-label" style="margin-left:6px;">Term</span>
+          <div class="term-pills" id="analyticsTermPills">
+            <button class="term-pill active" data-term="First">First</button>
+            <button class="term-pill" data-term="Second">Second</button>
+            <button class="term-pill" data-term="Third">Third</button>
+          </div>
+          <span class="session-bar-label" style="margin-left:6px;">Student</span>
+          <select class="analytics-student-select" id="analyticsStudentSelect">
+            <option value="">— Whole class average —</option>
+          </select>
+        </div>
+
+        <div id="analyticsLoadingBar" style="display:none;" class="analytics-loading">
+          <div class="spinner-ring"></div> Loading Firestore data…
+        </div>
+
+        <div class="analytics-grid">
+          <div class="stat-card-count">
+            <div class="stat-label">Students in Class</div>
+            <div class="stat-value" id="statCount">—</div>
+            <div class="stat-sub" id="statCountSub">Registered this session</div>
+          </div>
+          <div class="stat-card accent-green">
+            <div class="stat-label">Average Score</div>
+            <div class="stat-value" id="statAvg">—</div>
+            <div class="stat-sub" id="statAvgSub">Awaiting data</div>
+          </div>
+          <div class="stat-card accent-gold">
+            <div class="stat-label">Highest Score</div>
+            <div class="stat-value" id="statHigh">—</div>
+            <div class="stat-sub" id="statHighSub">Pending data</div>
+          </div>
+          <div class="stat-card accent-red">
+            <div class="stat-label">Lowest Score</div>
+            <div class="stat-value" id="statLow">—</div>
+            <div class="stat-sub" id="statLowSub">Pending data</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title" id="analyticsTableTitle">Subject Summary Breakdown</div>
+          </div>
+          <div class="performance-table-wrap">
+            <table class="performance-table">
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>CA /30</th>
+                  <th>Exam /70</th>
+                  <th>Total</th>
+                  <th>Grade</th>
+                  <th>Performance</th>
+                </tr>
+              </thead>
+              <tbody id="analyticsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════
+           VIEW: Score History
+      ════════════════════════════════════════════ -->
+      <div id="view-history" class="view-panel">
+        <div class="section-heading">
+          <div>
+            <h2 id="historyHeading">Score History</h2>
+            <p>View and edit committed results by session &amp; term</p>
+          </div>
+          <button class="btn btn-primary btn-sm" id="loadHistoryBtn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            Load Results
+          </button>
+        </div>
+
+        <!-- Filter bar: Session + Term only -->
+        <div class="session-bar" style="margin-bottom:20px;" id="historyFilterBar">
+          <span class="session-bar-label">Session</span>
+          <select class="session-select" id="historySessionSelect"></select>
+          <span class="session-bar-label" style="margin-left:8px;">Term</span>
+          <div class="term-pills" id="historyTermPills">
+            <button class="term-pill active" data-term="First">First</button>
+            <button class="term-pill" data-term="Second">Second</button>
+            <button class="term-pill" data-term="Third">Third</button>
+          </div>
+          <div class="session-context-badge" id="historyContextBadge" style="margin-left:auto;">—</div>
+        </div>
+
+        <!-- Summary count bar -->
+        <div id="historyCountBar" style="display:none; background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:14px 20px; margin-bottom:18px; box-shadow:var(--shadow-sm); display:none; align-items:center; gap:16px; flex-wrap:wrap;">
+          <div style="flex:1;">
+            <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-secondary);margin-bottom:4px;">Results Entered</div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div id="historyProgressBar" style="flex:1;height:8px;background:var(--sage-dark);border-radius:4px;overflow:hidden;">
+                <div id="historyProgressFill" style="height:100%;background:linear-gradient(90deg,var(--sidebar-mid),#27ae60);border-radius:4px;width:0%;transition:width 0.4s ease;"></div>
+              </div>
+              <span id="historyCountLabel" style="font-family:var(--font-mono);font-size:.85rem;font-weight:600;color:var(--sidebar-mid);white-space:nowrap;">0 / 0</span>
+            </div>
+          </div>
+          <div style="font-size:.78rem;color:var(--text-muted);" id="historyCountSub">Select session &amp; term then click Load Results</div>
+        </div>
+
+        <!-- Roster grid + inline editors -->
+        <div id="historyViewBody">
+          <div class="empty-state" style="padding:60px 20px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <h3>Choose a session &amp; term</h3>
+            <p>Select the academic session and term above, then click Load Results.</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /#main-content -->
+  </div><!-- /#app -->
+
+  <!-- ════════════════════════════════════════════════════════════
+       FIREBASE MODULE SCRIPT
+  ════════════════════════════════════════════════════════════ -->
+  <script type="module">
+    import { initializeApp }
+      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut }
+      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+    import {
+      getFirestore,
+      doc, getDoc, setDoc,
+      collection, query, where, onSnapshot,
+      writeBatch, serverTimestamp,
+      runTransaction, increment, getDocs
+    } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    /* ── Firebase init ── */
+    const firebaseConfig = {
+      apiKey:            "AIzaSyATfeLlHqie9wvmVuOuhBL5BaBwdYIZC7w",
+      authDomain:        "result-checker-c7a19.firebaseapp.com",
+      projectId:         "result-checker-c7a19",
+      storageBucket:     "result-checker-c7a19.firebasestorage.app",
+      messagingSenderId: "199064015810",
+      appId:             "1:199064015810:web:e11290cc380e0d9b463c5b"
+    };
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    /* ════════════════════════════════════════════════════════════
+       DYNAMIC CURRICULUM ROUTER ENGINE
+       Inspects teacher's assignedClass prefix and returns the
+       correct subject roster for that classroom tier level.
+    ════════════════════════════════════════════════════════════ */
+    const CURRICULUM_TIERS = {
+      KG: [
+        { id: 'numeracy',    name: 'Numeracy',               code: 'NUM' },
+        { id: 'literacy',    name: 'Literacy',               code: 'LIT' },
+        { id: 'phonics',     name: 'Phonics',                code: 'PHO' },
+        { id: 'rhymes',      name: 'Rhymes & Songs',         code: 'RHY' },
+        { id: 'coloring',    name: 'Coloring & Handwriting', code: 'COL' },
+        { id: 'socialnorms', name: 'Social Norms',           code: 'SNO' }
+      ],
+      PRY: [
+        { id: 'math',    name: 'Mathematics',           code: 'MTH' },
+        { id: 'eng',     name: 'English Language',      code: 'ENG' },
+        { id: 'bsci',    name: 'Basic Science',         code: 'BSC' },
+        { id: 'socstu',  name: 'Social Studies',        code: 'SST' },
+        { id: 'homeco',  name: 'Home Economics',        code: 'HEC' },
+        { id: 'agric',   name: 'Agricultural Science',  code: 'AGR' },
+        { id: 'quant',   name: 'Quantitative Reasoning', code: 'QNT' },
+        { id: 'verbal',  name: 'Verbal Reasoning',      code: 'VRB' }
+      ],
+      JSS: [
+        { id: 'math',    name: 'Mathematics',           code: 'MTH' },
+        { id: 'eng',     name: 'English Studies',       code: 'ENG' },
+        { id: 'bsci',    name: 'Basic Science',         code: 'BSC' },
+        { id: 'btech',   name: 'Basic Technology',      code: 'BTH' },
+        { id: 'socstu',  name: 'Social Studies',        code: 'SST' },
+        { id: 'civiced', name: 'Civic Education',       code: 'CIV' },
+        { id: 'bizstu',  name: 'Business Studies',      code: 'BIZ' },
+        { id: 'agric',   name: 'Agricultural Science',  code: 'AGR' },
+        { id: 'homeco',  name: 'Home Economics',        code: 'HEC' }
+      ],
+      SSS: [
+        { id: 'math',    name: 'Mathematics',           code: 'MTH' },
+        { id: 'eng',     name: 'English Language',      code: 'ENG' },
+        { id: 'phy',     name: 'Physics',               code: 'PHY' },
+        { id: 'chem',    name: 'Chemistry',             code: 'CHM' },
+        { id: 'bio',     name: 'Biology',               code: 'BIO' },
+        { id: 'eco',     name: 'Economics',             code: 'ECO' },
+        { id: 'civic',   name: 'Civic Education',       code: 'CIV' },
+        { id: 'geo',     name: 'Geography',             code: 'GEO' },
+        { id: 'furmath', name: 'Further Mathematics',   code: 'FMT' }
+      ]
+    };
+
+    /* Resolves the correct tier array from an assignedClass string */
+    function resolveSubjectsForClass(assignedClass) {
+      if (!assignedClass || typeof assignedClass !== 'string') return CURRICULUM_TIERS.SSS;
+      const upper = assignedClass.trim().toUpperCase();
+      if (upper.startsWith('KG'))  return CURRICULUM_TIERS.KG;
+      if (upper.startsWith('PRY')) return CURRICULUM_TIERS.PRY;
+      if (upper.startsWith('JSS')) return CURRICULUM_TIERS.JSS;
+      if (upper.startsWith('SSS')) return CURRICULUM_TIERS.SSS;
+      // Default fallback
+      return CURRICULUM_TIERS.SSS;
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       APPLICATION STATE
+       SUBJECTS is NOT static — it is populated dynamically by
+       the curriculum router after teacher profile is resolved.
+    ════════════════════════════════════════════════════════════ */
+    const STATE = {
+      teacher:             null,
+      students:            [],        // populated by onSnapshot — source of truth
+      scores:              {},
+      selectedStudent:     null,      // { id, fullName, examNumber } | null
+      unsubscribeStudents: null,
+      currentSession:      '2025-2026',
+      currentTerm:         'First',
+      subjects:            []         // dynamically populated by curriculum router
+    };
+
+    /* History view local state — persists between filter changes */
+    let HISTORY_STATE = { session: '2025-2026', term: 'First', studentData: {} };
+
+    /* Generate session list: current year ± 3 */
+    function buildSessionList() {
+      const currentYear = new Date().getFullYear();
+      const sessions = [];
+      for (let y = currentYear - 2; y <= currentYear + 2; y++) {
+        sessions.push(`${y}-${y + 1}`);
+      }
+      return sessions;
+    }
+
+    /* Populate a <select> with sessions and mark the active one */
+    function populateSessionSelect(selectEl, activeSession) {
+      if (!selectEl) return;
+      const sessions = buildSessionList();
+      selectEl.innerHTML = '';
+      sessions.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s.replace('-', '/') + ' Session';
+        opt.selected = s === activeSession;
+        selectEl.appendChild(opt);
+      });
+    }
+
+    /* Update session context badge and heading display labels */
+    function updateSessionContextUI() {
+      const badge   = document.getElementById('sessionContextBadge');
+      const yearEl  = document.getElementById('sessionYearDisplay');
+      const termEl  = document.getElementById('sessionTermDisplay');
+      const display = STATE.currentSession.replace('-', '/');
+      if (badge)  badge.textContent = `${display} · ${STATE.currentTerm} Term`;
+      if (yearEl) yearEl.textContent = display;
+      if (termEl) termEl.textContent = `${STATE.currentTerm} Term`;
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       UTILITY FUNCTIONS
+    ════════════════════════════════════════════════════════════ */
+    function computeGrade(total) {
+      if (total === '' || total === null || isNaN(total)) return null;
+      const t = Number(total);
+      if (t >= 75) return 'A';
+      if (t >= 65) return 'B';
+      if (t >= 55) return 'C';
+      if (t >= 45) return 'D';
+      if (t >= 40) return 'E';
+      return 'F';
+    }
+
+    function gradeClass(grade) {
+      return grade ? 'grade-' + grade : 'grade-none';
+    }
+
+    function getInitials(fullName) {
+      if (!fullName) return '??';
+      const parts = String(fullName).trim().split(/\s+/);
+      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    function esc(s) {
+      return String(s)
+        .replace(/&/g,  '&amp;')
+        .replace(/</g,  '&lt;')
+        .replace(/>/g,  '&gt;')
+        .replace(/"/g,  '&quot;')
+        .replace(/'/g,  '&#039;');
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const msgEl = document.getElementById('toast-msg');
+      if (!toast || !msgEl) return;
+      msgEl.textContent = msg;
+      toast.classList.add('show');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 4500);
+    }
+
+    /* Ordinal suffix: 1 → "1st", 2 → "2nd", 3 → "3rd", 4 → "4th" … */
+    function computeOrdinal(n) {
+      if (!n || isNaN(n)) return null;
+      const s = ['th','st','nd','rd'];
+      const v = n % 100;
+      return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    }
+
+    /* Return a position CSS class based on rank */
+    function posClass(rank) {
+      if (!rank) return 'pos-none';
+      if (rank === 1) return 'pos-1';
+      if (rank === 2) return 'pos-2';
+      if (rank === 3) return 'pos-3';
+      return 'pos-mid';
+    }
+
+    /* Same for registry badge */
+    function posBadgeClass(rank) {
+      if (!rank) return 'none';
+      if (rank === 1) return 'gold';
+      if (rank === 2) return 'silver';
+      if (rank === 3) return 'bronze';
+      return 'normal';
+    }
+
+    /* Cryptographically random 6-digit PIN: 100000–999999 */
+    function generateSecurePin() {
+      const arr = new Uint32Array(1);
+      crypto.getRandomValues(arr);
+      return String(100000 + (arr[0] % 900000));
+    }
+
+    /* Sequential exam number based on current snapshot roster size */
+    function generateExamNumber(snapshotSize) {
+      const seq = String(snapshotSize + 1).padStart(4, '0');
+      return `SAGE/2026/${seq}`;
+    }
+
+    /* CSV download helper */
+    function triggerCsvDownload(csvString, filename) {
+      const blob = new Blob([csvString], { type: 'text/csv' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       SESSION KEY & DOM REFS
+       Declared early so auth listener and session restore can
+       both reference them. applyTeacherProfile is defined below
+       as a regular function expression assigned before use.
+    ════════════════════════════════════════════════════════════ */
+    const SESSION_KEY    = 'eduportal_teacher_session';
+    const overlay        = document.getElementById('auth-overlay');
+    const sidebarEl      = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+    /* ════════════════════════════════════════════════════════════
+       FIREBASE AUTH LISTENER
+       Registered immediately after Firebase init so the SDK can
+       begin resolving the persisted token in parallel.
+
+       CRITICAL GUARD: Firebase Auth always fires once with
+       user = null on the very first cold tick while it hydrates
+       its IndexedDB token cache. We therefore never redirect on
+       the first null event — we wait for authResolved to be set
+       by either a valid user or a confirmed second null tick.
+    ════════════════════════════════════════════════════════════ */
+    let authResolved     = false;
+    let firstAuthTick    = true;   // absorbs the cold-start null tick
+    let redirectTimer    = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      /* On the very first tick Firebase often emits null before
+         resolving the cached token. Skip redirect on this tick;
+         schedule a short grace window instead. */
+      if (firstAuthTick && !user) {
+        firstAuthTick = false;
+        /* Give Firebase up to 3 s to resolve the real session */
+        redirectTimer = setTimeout(() => {
+          if (!authResolved) {
+            /* Still no user after grace period — check sessionStorage
+               before giving up, in case Firebase persistence failed */
+            try {
+              const cached = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+              if (cached && cached.fullName) {
+                applyTeacherProfile(cached);
+                subscribeToStudents(cached.assignedClass);
+                authResolved = true;
+                return;
+              }
+            } catch (_) {}
+            window.location.href = 'portal.html';
+          }
+        }, 3000);
+        return;
+      }
+
+      firstAuthTick = false;
+      authResolved  = true;
+      if (redirectTimer) { clearTimeout(redirectTimer); redirectTimer = null; }
+
+      if (!user) {
+        /* Confirmed signed-out state after the cold-start grace window */
+        try {
+          const cached = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+          if (cached && cached.fullName) {
+            /* sessionStorage still valid — keep the user in */
+            applyTeacherProfile(cached);
+            if (STATE.students.length === 0 && cached.assignedClass) {
+              subscribeToStudents(cached.assignedClass);
+            }
+            return;
+          }
+        } catch (_) {}
+        window.location.href = 'portal.html';
+        return;
+      }
+
+      /* ── Valid Firebase user — fetch Firestore teacher profile ── */
+      try {
+        const teacherRef  = doc(db, 'users', user.uid);
+        const teacherSnap = await getDoc(teacherRef);
+        let teacherData;
+        if (teacherSnap.exists()) {
+          teacherData = { uid: user.uid, ...teacherSnap.data() };
+        } else {
+          /* Firestore doc missing — fall back to sessionStorage */
+          const cached = (() => {
+            try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); }
+            catch(_) { return null; }
+          })();
+          teacherData = {
+            uid:           user.uid,
+            fullName:      cached?.fullName      || 'Teacher',
+            assignedClass: cached?.assignedClass || 'SSS 2A',
+            role:          cached?.role          || 'teacher'
+          };
+        }
+        try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(teacherData)); } catch (_) {}
+        applyTeacherProfile(teacherData);
+        subscribeToStudents(teacherData.assignedClass);
+      } catch (err) {
+        console.error('Teacher profile sync error:', err);
+        /* Network error fetching Firestore — try sessionStorage fallback */
+        try {
+          const cached = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+          if (cached && cached.fullName) {
+            applyTeacherProfile(cached);
+            subscribeToStudents(cached.assignedClass);
+            return;
+          }
+        } catch (_) {}
+        if (overlay) overlay.classList.add('hidden');
+      }
+    });
+
+    /* ════════════════════════════════════════════════════════════
+       APPLY TEACHER PROFILE TO DOM + CURRICULUM ROUTER BOOTSTRAP
+    ════════════════════════════════════════════════════════════ */
+    function applyTeacherProfile(data) {
+      STATE.teacher = data;
+      const initials = getInitials(data.fullName);
+      const cls      = data.assignedClass || 'SSS 2A';
+
+      const sbInit   = document.getElementById('sidebarInitials');
+      const hdInit   = document.getElementById('headerInitials');
+      const sbName   = document.getElementById('sidebarStaffName');
+      const sbCls    = document.getElementById('sidebarClass');
+      const lcName   = document.getElementById('lockedClassName');
+      const rHeading = document.getElementById('registryHeading');
+      const aHeading = document.getElementById('analyticsHeading');
+
+      if (sbInit)   sbInit.textContent   = initials;
+      if (hdInit)   hdInit.textContent   = initials;
+      if (sbName)   sbName.textContent   = data.fullName || 'Teacher';
+      if (sbCls)    sbCls.textContent    = 'Class: ' + cls;
+      if (lcName)   lcName.textContent   = cls;
+      if (rHeading) rHeading.textContent = 'Student Registry — ' + cls;
+      if (aHeading) aHeading.textContent = 'Class Analytics — '  + cls;
+
+      if (overlay) overlay.classList.add('hidden');
+
+      /* ── Bootstrap session/term UI once on first profile load ── */
+      if (!STATE._sessionBarInit) {
+        STATE._sessionBarInit = true;
+        initSessionBar();
+      }
+      updateSessionContextUI();
+      const resolvedSubjects = resolveSubjectsForClass(cls);
+      STATE.subjects = resolvedSubjects;
+
+      /* Reset scores map to match new subject set */
+      STATE.scores = {};
+      resolvedSubjects.forEach(s => { STATE.scores[s.id] = { ca: '', exam: '' }; });
+
+      /* Re-render both the desktop table and mobile card list
+         using the resolved curriculum tier subjects */
+      buildScoreTable();
+      buildMobileCards();
+
+      if (!STATE._visibilityInit) {
+        STATE._visibilityInit = true;
+        initVisibilityControl();
+      }
+
+
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       FIRESTORE STUDENT SUBSCRIPTION (real-time onSnapshot)
+    ════════════════════════════════════════════════════════════ */
+    function subscribeToStudents(assignedClass) {
+      if (STATE.unsubscribeStudents) STATE.unsubscribeStudents();
+      const q = query(
+        collection(db, 'students'),
+        where('assignedClass', '==', assignedClass)
+      );
+      STATE.unsubscribeStudents = onSnapshot(q, (snapshot) => {
+        const fetched = [];
+        snapshot.forEach(docSnap => fetched.push({ id: docSnap.id, ...docSnap.data() }));
+        fetched.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || ''));
+        STATE.students = fetched;
+        STATE.lastSnapshotSize = fetched.length;
+
+        renderRegistryTable();
+        populateStudentDropdown();
+      }, (err) => {
+        console.error('Students snapshot error:', err);
+      });
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       GLOBAL RESULT VISIBILITY SYSTEM
+       Sets a central config document to lock or unlock student access
+    ════════════════════════════════════════════════════════════ */
+    let currentVisibilityState = false;
+
+    function initVisibilityControl() {
+      const toggleBtn   = document.getElementById('toggleVisibilityBtn');
+      const statusTxt   = document.getElementById('visibilityStatusText');
+      const bar         = document.querySelector('.portal-control-bar');
+      const burst       = document.getElementById('publishBurst');
+      const confettiBox = document.getElementById('confettiContainer');
+      if (!toggleBtn || !statusTxt) return;
+
+      /* ── Helpers ── */
+      const CONFETTI_COLORS = ['#c8973a','#2e7d52','#3b82f6','#f59e0b','#10b981','#ef4444','#8b5cf6'];
+
+      function spawnConfetti() {
+        if (!confettiBox) return;
+        confettiBox.innerHTML = '';
+        for (let i = 0; i < 22; i++) {
+          const p = document.createElement('div');
+          p.className = 'confetti-particle';
+          p.style.cssText = `
+            left: ${10 + Math.random() * 80}%;
+            top: ${5 + Math.random() * 30}%;
+            background: ${CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)]};
+            width: ${4 + Math.random() * 5}px;
+            height: ${4 + Math.random() * 5}px;
+            border-radius: ${Math.random() > 0.5 ? '50%' : '1px'};
+            animation-delay: ${Math.random() * 0.35}s;
+            animation-duration: ${0.9 + Math.random() * 0.5}s;
+          `;
+          confettiBox.appendChild(p);
+          // trigger reflow before adding class
+          void p.offsetWidth;
+          p.classList.add('animate');
+        }
+      }
+
+      function triggerBurst() {
+        if (!burst) return;
+        burst.classList.remove('animate');
+        void burst.offsetWidth;
+        burst.classList.add('animate');
+        setTimeout(() => burst.classList.remove('animate'), 800);
+      }
+
+      function shimmerBtn() {
+        toggleBtn.classList.remove('shimmer');
+        void toggleBtn.offsetWidth;
+        toggleBtn.classList.add('shimmer');
+      }
+
+      function animateStatusText(html) {
+        statusTxt.classList.add('updating');
+        setTimeout(() => {
+          statusTxt.innerHTML = html;
+          statusTxt.classList.remove('updating');
+          statusTxt.classList.remove('status-slide-in');
+          void statusTxt.offsetWidth;
+          statusTxt.classList.add('status-slide-in');
+        }, 300);
+      }
+
+      function setBarState(isLive) {
+        if (bar) {
+          bar.classList.toggle('is-live', isLive);
+          bar.classList.toggle('is-draft', !isLive);
+        }
+      }
+
+      /* ── Realtime listener ── */
+      onSnapshot(doc(db, 'config', 'results_settings'), (docSnap) => {
+        const wasLive = currentVisibilityState;
+        currentVisibilityState = docSnap.exists()
+          ? (docSnap.data().globalResultsLive ?? false)
+          : false;
+
+        const justWentLive = !wasLive && currentVisibilityState;
+
+        setBarState(currentVisibilityState);
+
+        if (currentVisibilityState) {
+          // LIVE state
+          toggleBtn.className = 'btn btn-outline btn-sm';
+          toggleBtn.style.cssText = 'font-weight:700; border-color:var(--danger); color:var(--danger);';
+          toggleBtn.innerHTML = `
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            Revoke Portal Access
+          `;
+          animateStatusText(`
+            <span class="live-pulse-dot">
+              <span class="dot-core"></span>
+              <span class="dot-ring"></span>
+              <span class="dot-ring"></span>
+            </span>
+            <strong style="color:var(--success);">Live</strong>
+            <span style="color:var(--text-secondary);">· Students can view their performance cards via PIN login.</span>
+          `);
+
+          if (justWentLive) {
+            setTimeout(() => { spawnConfetti(); triggerBurst(); shimmerBtn(); }, 80);
+          }
+        } else {
+          // DRAFT state
+          toggleBtn.className = 'btn btn-success btn-sm';
+          toggleBtn.style.cssText = 'font-weight:700; background:var(--success);';
+          toggleBtn.innerHTML = `
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Publish Results (Make Live)
+          `;
+          animateStatusText(`
+            <span class="draft-dot"></span>
+            <strong style="color:var(--danger);">Draft Mode</strong>
+            <span style="color:var(--text-secondary);">· Portal closed — students see "Results Not Available".</span>
+          `);
+        }
+
+        toggleBtn.disabled = false;
+        toggleBtn.classList.remove('is-updating');
+      }, (err) => {
+        console.error('Visibility listener failed:', err);
+      });
+
+      /* ── Button click ── */
+      toggleBtn.addEventListener('click', async () => {
+        toggleBtn.disabled = true;
+        toggleBtn.classList.add('is-updating');
+        const isPublishing = !currentVisibilityState;
+        toggleBtn.innerHTML = `
+          <span class="btn-spinner"></span>
+          ${isPublishing ? 'Publishing…' : 'Revoking access…'}
+        `;
+
+        try {
+          await setDoc(doc(db, 'config', 'results_settings'), {
+            globalResultsLive: isPublishing,
+            updatedBy: STATE.teacher?.uid || 'admin',
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+
+          showToast(isPublishing
+            ? '🎯 Results published! Students can now view their cards.'
+            : '🔒 Portal access revoked for all students.'
+          );
+        } catch (err) {
+          console.error('Error setting visibility:', err);
+          showToast('✗ Update failed. Check permissions and try again.');
+          toggleBtn.disabled = false;
+          toggleBtn.classList.remove('is-updating');
+        }
+      });
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       STUDENT REGISTRATION — TRUE ASYNC FIRESTORE WRITE
+       Auto-generates examNumber and accessPin.
+       Maps Firestore doc as: { fullName, examNumber, pin, assignedClass }
+    ════════════════════════════════════════════════════════════ */
+    const addStudentToggleBtn = document.getElementById('addStudentToggleBtn');
+    const cancelAddStudentBtn = document.getElementById('cancelAddStudentBtn');
+    const addStudentDrawer    = document.getElementById('addStudentDrawer');
+
+    function toggleAddStudentForm() {
+      if (addStudentDrawer) addStudentDrawer.classList.toggle('open');
+    }
+    if (addStudentToggleBtn) addStudentToggleBtn.addEventListener('click', toggleAddStudentForm);
+    if (cancelAddStudentBtn) cancelAddStudentBtn.addEventListener('click', () => {
+      if (addStudentDrawer) addStudentDrawer.classList.remove('open');
+      const nameEl = document.getElementById('newStudentName');
+      if (nameEl) nameEl.value = '';
+    });
+
+    /* ── Registration handler bound via event delegation so it always
+       works even if teacher profile loads after script parse. ── */
+    document.addEventListener('click', async (e) => {
+      const btn = e.target.closest('#onboardStudentBtn');
+      if (!btn) return;
+
+      const nameEl   = document.getElementById('newStudentName');
+      const yearEl   = document.getElementById('newStudentYear');
+      const fullName = nameEl ? nameEl.value.trim() : '';
+      const acadYear = yearEl ? yearEl.value : STATE.currentSession;
+
+      if (!fullName) {
+        if (nameEl) nameEl.focus();
+        showToast('⚠ Please enter the student\'s full name.');
+        return;
+      }
+
+      /* FIX #2: Guard — teacher profile must be fully loaded */
+      if (!STATE.teacher?.assignedClass) {
+        showToast('⚠ Teacher profile not loaded yet. Please wait a moment and try again.');
+        return;
+      }
+
+      btn.disabled    = true;
+      btn.textContent = 'Saving…';
+
+      try {
+        const assignedClass = STATE.teacher.assignedClass;
+        const pin           = generateSecurePin();
+
+        /* FIX #1: Use a Firestore atomic transaction to generate a
+           collision-proof sequential exam number, then write the student
+           doc with an auto-generated ID (not the exam number) so that
+           two rapid registrations can never overwrite each other.        */
+        const counterRef    = doc(db, 'meta', 'studentCounter_' + assignedClass.replace(/\s+/g, '_'));
+        const studentColRef = collection(db, 'students');
+
+        let examNumber;
+        await runTransaction(db, async (txn) => {
+          const counterSnap = await txn.get(counterRef);
+          const nextSeq     = (counterSnap.exists() ? (counterSnap.data().count || 0) : 0) + 1;
+          examNumber        = `SAGE/2026/${String(nextSeq).padStart(4, '0')}`;
+
+          /* Write counter atomically */
+          txn.set(counterRef, { count: nextSeq }, { merge: true });
+
+          /* Write student with auto-generated doc ID */
+          const newStudentRef = doc(studentColRef);
+          txn.set(newStudentRef, {
+            fullName,
+            examNumber,
+            pin,
+            assignedClass,
+            academicYear: acadYear,
+            enrolledSession: STATE.currentSession,
+            createdBy: STATE.teacher?.uid || 'unknown',
+            createdAt: serverTimestamp()
+          });
+        });
+
+        if (nameEl) nameEl.value = '';
+        if (yearEl) yearEl.value = STATE.currentSession;
+        if (addStudentDrawer) addStudentDrawer.classList.remove('open');
+
+        showToast(
+          `✓ Student onboarded!\n` +
+          `Exam No: ${examNumber}\n` +
+          `Access PIN: ${pin}`
+        );
+
+      } catch (err) {
+        console.error('Student registration error:', err);
+        showToast('✗ Failed to save student. Check your connection and try again.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Onboard Student
+        `;
+      }
+    });
+
+    /* ════════════════════════════════════════════════════════════
+       EXPORT CLASS PIN LIST — Download PINList_Class.csv
+       Columns: Student Name, Exam Number, Class Location, Access PIN
+    ════════════════════════════════════════════════════════════ */
+    /* Export is now per-year — handled inside renderRegistryTable() via delegated click */
+    function exportYearPinList(yearKey) {
+      const yearStudents = STATE.students.filter(s => {
+        const sy = (s.academicYear || s.enrolledSession || '').trim();
+        return sy === yearKey;
+      });
+      if (yearStudents.length === 0) {
+        showToast('⚠ No students for ' + yearKey.replace('-','/') + ' to export.');
+        return;
+      }
+      const header = 'Student Name,Exam Number,Class,Access PIN,Academic Year';
+      const rows = yearStudents.map(s => {
+        const name  = (s.fullName || '').replace(/,/g,' ');
+        const exam  = (s.examNumber || '').replace(/,/g,'');
+        const cls   = (s.assignedClass || STATE.teacher?.assignedClass || '').replace(/,/g,'');
+        const pin   = (s.pin || s.accessPin || '').replace(/,/g,'');
+        const yr    = (s.academicYear || s.enrolledSession || yearKey).replace('-','/');
+        return `"${name}","${exam}","${cls}","${pin}","${yr}"`;
+      });
+      const csv = [header, ...rows].join('\n');
+      triggerCsvDownload(csv, `PINList_${yearKey.replace('-','_')}.csv`);
+      showToast(`✓ Exported ${yearStudents.length} student${yearStudents.length !== 1 ? 's' : ''} for ${yearKey.replace('-','/')}.`);
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       STUDENT DROPDOWN POPULATION
+       Populates the Select Student dropdown in the Upload panel.
+       Sorts alphabetically, displays: LastName, FirstName · ExamNumber
+    ════════════════════════════════════════════════════════════ */
+    function populateStudentDropdown() {
+      const dropdown  = document.getElementById('studentSelectDropdown');
+      const anSel     = document.getElementById('analyticsStudentSelect');
+      const hiSel     = document.getElementById('historyStudentSelect');
+
+      const currentVal   = dropdown   ? dropdown.value : '';
+      const anCurrentVal = anSel      ? anSel.value    : '';
+      const hiCurrentVal = hiSel      ? hiSel.value    : '';
+
+      if (dropdown) {
+        dropdown.innerHTML = '<option value="">— Choose a student to load their sheet —</option>';
+      }
+      if (anSel) {
+        anSel.innerHTML = '<option value="">— Whole class average —</option>';
+      }
+      if (hiSel) {
+        hiSel.innerHTML = '<option value="">— Select a student —</option>';
+      }
+
+      /* Only students whose academicYear matches the currently selected session */
+      const yearStudents = STATE.students.filter(s => {
+        const sy = (s.academicYear || s.enrolledSession || '').trim();
+        return sy === STATE.currentSession;
+      });
+
+      /* Update student count stat card — count only year-matched students */
+      const countEl    = document.getElementById('statCount');
+      const countSubEl = document.getElementById('statCountSub');
+      if (countEl)    countEl.textContent    = yearStudents.length;
+      if (countSubEl) countSubEl.textContent = `in ${STATE.teacher?.assignedClass || '—'}`;
+
+      yearStudents.forEach(student => {
+        const rawName  = student.fullName || '';
+        const parts    = rawName.trim().split(/\s+/);
+        let displayName = rawName;
+        if (parts.length >= 2) {
+          const last  = parts[parts.length - 1];
+          const first = parts.slice(0, parts.length - 1).join(' ');
+          displayName = `${last}, ${first}`;
+        }
+        const examNo = student.examNumber || '—';
+
+        /* Upload dropdown — year-filtered */
+        if (dropdown) {
+          const opt = document.createElement('option');
+          opt.value           = examNo;
+          opt.textContent     = `${displayName}  ·  ${examNo}`;
+          opt.dataset.name    = rawName;
+          opt.dataset.exam    = examNo;
+          opt.dataset.id      = student.id;
+          dropdown.appendChild(opt);
+        }
+
+        /* Analytics student select — year-filtered */
+        if (anSel) {
+          const opt2 = document.createElement('option');
+          opt2.value       = examNo;
+          opt2.textContent = `${displayName}  ·  ${examNo}`;
+          anSel.appendChild(opt2);
+        }
+
+        /* History student select — year-filtered (hidden but kept for compat) */
+        if (hiSel) {
+          const opt3 = document.createElement('option');
+          opt3.value       = examNo;
+          opt3.textContent = `${displayName}  ·  ${examNo}`;
+          hiSel.appendChild(opt3);
+        }
+      });
+
+      if (dropdown && currentVal) {
+        dropdown.value = currentVal;
+        if (dropdown.value !== currentVal) mountStudentToSheet(null);
+      }
+      if (anSel && anCurrentVal) anSel.value = anCurrentVal;
+      if (hiSel && hiCurrentVal) hiSel.value = hiCurrentVal;
+    }
+
+    function mountStudentToSheet(studentData) {
+      STATE.selectedStudent = studentData;
+      const badge     = document.getElementById('selectedStudentBadge');
+      const badgeName = document.getElementById('selectedStudentName');
+      const badgeExam = document.getElementById('selectedStudentExam');
+      const saveBtn   = document.getElementById('saveScoresBtn');
+
+      if (studentData) {
+        if (badge)     badge.style.display   = 'flex';
+        if (badgeName) badgeName.textContent = studentData.fullName;
+        if (badgeExam) badgeExam.textContent = `· ${studentData.examNumber}`;
+        if (saveBtn)   saveBtn.disabled      = false;
+      } else {
+        if (badge)   badge.style.display = 'none';
+        if (saveBtn) saveBtn.disabled    = true;
+      }
+    }
+
+    const studentDropdown = document.getElementById('studentSelectDropdown');
+    if (studentDropdown) {
+      studentDropdown.addEventListener('change', () => {
+        const selected = studentDropdown.options[studentDropdown.selectedIndex];
+        if (!selected || !selected.value) {
+          mountStudentToSheet(null);
+          return;
+        }
+        mountStudentToSheet({
+          id:         selected.dataset.id,
+          fullName:   selected.dataset.name,
+          examNumber: selected.dataset.exam
+        });
+      });
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       VIEW SWITCHER
+    ════════════════════════════════════════════════════════════ */
+    const VIEW_META = {
+      upload:    { title: 'Result Entry Sheet', crumb: 'Dashboard › Upload Results' },
+      registry:  { title: 'Student Registry',   crumb: 'Dashboard › Registry'       },
+      analytics: { title: 'Class Analytics',    crumb: 'Dashboard › Analytics'      },
+      history:   { title: 'Score History',      crumb: 'Dashboard › Score History'  }
+    };
+
+    function switchView(viewId) {
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+      const panel = document.getElementById('view-' + viewId);
+      if (panel) panel.classList.add('active');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-view') === viewId);
+      });
+
+      const meta = VIEW_META[viewId];
+      if (meta) {
+        const titleEl = document.getElementById('headerTitle');
+        const crumbEl = document.getElementById('headerBreadcrumb');
+        if (titleEl) titleEl.textContent = meta.title;
+        if (crumbEl) crumbEl.textContent = meta.crumb;
+      }
+
+      closeMobileSidebar();
+      if (viewId === 'analytics') runFirestoreAnalytics();
+    }
+
+    document.querySelectorAll('.nav-btn[data-view]').forEach(btn => {
+      btn.addEventListener('click', () => switchView(btn.getAttribute('data-view')));
+    });
+
+    /* ── Mobile sidebar ── */
+    function openMobileSidebar() {
+      if (sidebarEl)      sidebarEl.classList.add('mobile-open');
+      if (sidebarOverlay) sidebarOverlay.classList.add('show');
+    }
+    function closeMobileSidebar() {
+      if (sidebarEl)      sidebarEl.classList.remove('mobile-open');
+      if (sidebarOverlay) sidebarOverlay.classList.remove('show');
+    }
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', openMobileSidebar);
+    if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeMobileSidebar);
+
+    /* ── Sign out ── */
+    const signoutBtn = document.getElementById('signoutBtn');
+    if (signoutBtn) {
+      signoutBtn.addEventListener('click', () => {
+        try { sessionStorage.removeItem(SESSION_KEY); } catch (_) {}
+        signOut(auth).finally(() => { window.location.href = 'portal.html'; });
+      });
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       SESSION / TERM BAR — wired on page load, shared across
+       the Upload view and all analytics/history views.
+    ════════════════════════════════════════════════════════════ */
+    function initSessionBar() {
+      /* Populate academic year select in the registration form */
+      const yearSelect = document.getElementById('newStudentYear');
+      if (yearSelect) {
+        const sessions = buildSessionList();
+        yearSelect.innerHTML = '';
+        sessions.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s;
+          opt.textContent = s.replace('-', '/') + ' Academic Year';
+          opt.selected = s === STATE.currentSession;
+          yearSelect.appendChild(opt);
+        });
+      }
+      /* Upload view selects */
+      const sessionSel  = document.getElementById('sessionSelect');
+      const termPills   = document.querySelectorAll('#termPills .term-pill');
+      /* Analytics selects */
+      const anSessionSel = document.getElementById('analyticsSessionSelect');
+      const anTermPills  = document.querySelectorAll('#analyticsTermPills .term-pill');
+      /* History selects */
+      const hiSessionSel = document.getElementById('historySessionSelect');
+
+      populateSessionSelect(sessionSel,   STATE.currentSession);
+      populateSessionSelect(anSessionSel, STATE.currentSession);
+      populateSessionSelect(hiSessionSel, STATE.currentSession);
+      HISTORY_STATE.session = STATE.currentSession;
+      updateSessionContextUI();
+      updateHistoryContextBadge();
+
+      /* Upload session change */
+      if (sessionSel) sessionSel.addEventListener('change', () => {
+        STATE.currentSession = sessionSel.value;
+        if (anSessionSel) anSessionSel.value = sessionSel.value;
+        if (hiSessionSel) hiSessionSel.value = sessionSel.value;
+        updateSessionContextUI();
+        populateStudentDropdown(); // re-filter by new academic year
+      });
+
+      /* Upload term pills */
+      termPills.forEach(pill => {
+        pill.addEventListener('click', () => {
+          termPills.forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          STATE.currentTerm = pill.dataset.term;
+          /* Sync analytics term pills */
+          anTermPills.forEach(p => {
+            p.classList.toggle('active', p.dataset.term === STATE.currentTerm);
+          });
+          updateSessionContextUI();
+        });
+      });
+
+      /* Analytics session change */
+      if (anSessionSel) anSessionSel.addEventListener('change', () => {
+        STATE.currentSession = anSessionSel.value;
+        if (sessionSel)   sessionSel.value   = anSessionSel.value;
+        if (hiSessionSel) hiSessionSel.value = anSessionSel.value;
+        updateSessionContextUI();
+        populateStudentDropdown(); /* re-filter student list for the new year */
+        runFirestoreAnalytics();
+      });
+
+      /* Analytics term pills */
+      anTermPills.forEach(pill => {
+        pill.addEventListener('click', () => {
+          anTermPills.forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          STATE.currentTerm = pill.dataset.term;
+          termPills.forEach(p => {
+            p.classList.toggle('active', p.dataset.term === STATE.currentTerm);
+          });
+          updateSessionContextUI();
+          runFirestoreAnalytics();
+        });
+      });
+
+      /* Analytics student select */
+      const anStudentSel = document.getElementById('analyticsStudentSelect');
+      if (anStudentSel) anStudentSel.addEventListener('change', runFirestoreAnalytics);
+
+      /* History session change */
+      if (hiSessionSel) hiSessionSel.addEventListener('change', () => {
+        STATE.currentSession = hiSessionSel.value;
+        HISTORY_STATE.session = hiSessionSel.value;
+        if (sessionSel)   sessionSel.value   = hiSessionSel.value;
+        if (anSessionSel) anSessionSel.value = hiSessionSel.value;
+        updateSessionContextUI();
+        updateHistoryContextBadge();
+      });
+
+      /* History term pills */
+      const hiTermPills = document.querySelectorAll('#historyTermPills .term-pill');
+      hiTermPills.forEach(pill => {
+        pill.addEventListener('click', () => {
+          hiTermPills.forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          HISTORY_STATE.term = pill.dataset.term;
+          updateHistoryContextBadge();
+        });
+      });
+
+      /* History load btn */
+      const loadHistoryBtn = document.getElementById('loadHistoryBtn');
+      if (loadHistoryBtn) loadHistoryBtn.addEventListener('click', runHistoryView);
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       FIRESTORE ANALYTICS — real Firestore reads
+       Fetches subjects for the selected session/term for either
+       a specific student or aggregates across the whole class.
+    ════════════════════════════════════════════════════════════ */
+    async function runFirestoreAnalytics() {
+      const loadingBar  = document.getElementById('analyticsLoadingBar');
+      const atbody      = document.getElementById('analyticsTableBody');
+      const tableTitle  = document.getElementById('analyticsTableTitle');
+
+      const anSel       = document.getElementById('analyticsStudentSelect');
+      const chosenExam  = anSel ? anSel.value : '';
+      const sessionKey  = STATE.currentSession;
+      const termKey     = STATE.currentTerm;
+
+      if (loadingBar) loadingBar.style.display = 'flex';
+      if (atbody)     atbody.innerHTML = '';
+
+      /* Only students enrolled in the selected academic year */
+      const yearStudents = STATE.students.filter(s => {
+        const sy = (s.academicYear || s.enrolledSession || '').trim();
+        return sy === sessionKey;
+      });
+
+      /* Update student count stat — year-filtered */
+      const countEl    = document.getElementById('statCount');
+      const countSubEl = document.getElementById('statCountSub');
+      if (countEl)    countEl.textContent    = yearStudents.length;
+      if (countSubEl) countSubEl.textContent = `in ${STATE.teacher?.assignedClass || '—'}`;
+
+      try {
+        let subjectTotals = {}; // subjectId -> { name, code, ca, exam, total, count }
+
+        /* Which students to query — scoped to the selected year */
+        const targets = chosenExam
+          ? yearStudents.filter(s => s.examNumber === chosenExam)
+          : yearStudents;
+
+        if (targets.length === 0) {
+          renderAnalyticsEmpty('No students in registry.');
+          if (loadingBar) loadingBar.style.display = 'none';
+          return;
+        }
+
+        /* Fetch subject docs for each student from Firestore */
+        const fetchPromises = targets.map(async student => {
+          const docId = student.examNumber || student.id;
+          const subjColRef = collection(
+            db,
+            'students', docId,
+            'enrollments', sessionKey,
+            'terms', termKey,
+            'subjects'
+          );
+          const snap = await getDocs(subjColRef);
+          snap.forEach(s => {
+            const d = s.data();
+            if (!subjectTotals[s.id]) {
+              subjectTotals[s.id] = { name: d.subjectName, code: d.subjectCode, ca: 0, exam: 0, total: 0, count: 0 };
+            }
+            subjectTotals[s.id].ca    += (d.ca    || 0);
+            subjectTotals[s.id].exam  += (d.exam  || 0);
+            subjectTotals[s.id].total += (d.total || 0);
+            subjectTotals[s.id].count += 1;
+          });
+        });
+
+        await Promise.all(fetchPromises);
+
+        const entries = Object.entries(subjectTotals);
+        if (entries.length === 0) {
+          renderAnalyticsEmpty(`No results committed for ${sessionKey} · ${termKey} Term${chosenExam ? ' for this student' : ' yet'}.`);
+          if (loadingBar) loadingBar.style.display = 'none';
+          return;
+        }
+
+        const isAggregate = !chosenExam && targets.length > 1;
+        const rows = entries.map(([id, d]) => ({
+          id,
+          name:  d.name || id,
+          code:  d.code || '',
+          ca:    isAggregate ? +(d.ca    / d.count).toFixed(1) : d.ca,
+          exam:  isAggregate ? +(d.exam  / d.count).toFixed(1) : d.exam,
+          total: isAggregate ? +(d.total / d.count).toFixed(1) : d.total,
+        })).sort((a, b) => b.total - a.total);
+
+        /* Update stat cards */
+        const allTotals  = rows.map(r => r.total);
+        const avg        = (allTotals.reduce((a, b) => a + b, 0) / allTotals.length).toFixed(1);
+        const maxRow     = rows[0];
+        const minRow     = rows[rows.length - 1];
+
+        const avgEl     = document.getElementById('statAvg');
+        const avgSubEl  = document.getElementById('statAvgSub');
+        const highEl    = document.getElementById('statHigh');
+        const highSubEl = document.getElementById('statHighSub');
+        const lowEl     = document.getElementById('statLow');
+        const lowSubEl  = document.getElementById('statLowSub');
+
+        if (avgEl)     avgEl.textContent     = avg;
+        if (avgSubEl)  avgSubEl.textContent  = `Across ${rows.length} subject${rows.length !== 1 ? 's' : ''}`;
+        if (highEl)    highEl.textContent    = maxRow.total;
+        if (highSubEl) highSubEl.textContent = maxRow.name;
+        if (lowEl)     lowEl.textContent     = minRow.total;
+        if (lowSubEl)  lowSubEl.textContent  = minRow.name;
+
+        if (tableTitle) tableTitle.textContent = isAggregate
+          ? `Class Average — ${sessionKey} · ${termKey} Term`
+          : `${targets[0]?.fullName} — ${sessionKey} · ${termKey} Term`;
+
+        /* Render table */
+        if (atbody) {
+          atbody.innerHTML = '';
+          rows.forEach(row => {
+            const grade    = computeGrade(row.total);
+            const barWidth = Math.min(row.total, 100);
+            const tr       = document.createElement('tr');
+            tr.innerHTML = `
+              <td>
+                <div class="subject-label">${esc(row.name)}</div>
+                <div class="subject-code">${esc(row.code)}</div>
+              </td>
+              <td style="font-family:var(--font-mono);">${row.ca}</td>
+              <td style="font-family:var(--font-mono);">${row.exam}</td>
+              <td style="font-family:var(--font-mono); font-weight:600;">${row.total}</td>
+              <td><span class="grade-badge ${gradeClass(grade)}">${grade || '—'}</span></td>
+              <td style="min-width:160px;">
+                <div class="progress-bar-wrap">
+                  <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width:${barWidth}%"></div>
+                  </div>
+                  <span class="progress-pct">${row.total}</span>
+                </div>
+              </td>
+            `;
+            atbody.appendChild(tr);
+          });
+        }
+
+      } catch (err) {
+        console.error('Analytics Firestore error:', err);
+        renderAnalyticsEmpty('Failed to load data. Check your connection.');
+      } finally {
+        if (loadingBar) loadingBar.style.display = 'none';
+      }
+    }
+
+    function renderAnalyticsEmpty(msg) {
+      const atbody = document.getElementById('analyticsTableBody');
+      if (!atbody) return;
+      atbody.innerHTML = `
+        <tr><td colspan="6">
+          <div class="empty-state" style="padding:32px 20px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            <h3>No data</h3>
+            <p>${esc(msg)}</p>
+          </div>
+        </td></tr>`;
+      ['statAvg','statHigh','statLow'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.textContent = '—';
+      });
+      ['statAvgSub','statHighSub','statLowSub'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.textContent = 'No data';
+      });
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       HISTORY VIEW — class roster for a given session + term
+       Shows all students with fill status + inline editable scores
+    ════════════════════════════════════════════════════════════ */
+    function updateHistoryContextBadge() {
+      const badge = document.getElementById('historyContextBadge');
+      if (badge) badge.textContent = `${HISTORY_STATE.session.replace('-','/')} · ${HISTORY_STATE.term} Term`;
+    }
+
+    async function runHistoryView() {
+      const sessionSel = document.getElementById('historySessionSelect');
+      const bodyEl     = document.getElementById('historyViewBody');
+      const countBar   = document.getElementById('historyCountBar');
+
+      const sessionKey = sessionSel ? sessionSel.value : STATE.currentSession;
+      HISTORY_STATE.session = sessionKey;
+      updateHistoryContextBadge();
+
+      /* ── Guard: no students at all ── */
+      if (STATE.students.length === 0) {
+        if (countBar) countBar.style.display = 'none';
+        if (bodyEl) bodyEl.innerHTML = `
+          <div class="empty-state" style="padding:60px 20px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            <h3>No students registered</h3>
+            <p>Add students in the Student Registry first.</p>
+          </div>`;
+        return;
+      }
+
+      /* ── Filter: only students enrolled in the selected academic year ── */
+      const yearStudents = STATE.students.filter(s => {
+        const sy = (s.academicYear || s.enrolledSession || '').trim();
+        return sy === sessionKey;
+      });
+
+      if (yearStudents.length === 0) {
+        if (countBar) countBar.style.display = 'none';
+        if (bodyEl) bodyEl.innerHTML = `
+          <div class="empty-state" style="padding:60px 20px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <h3>No students for ${esc(sessionKey.replace('-','/'))} academic year</h3>
+            <p>No students are registered under the <strong>${esc(sessionKey.replace('-','/'))} Academic Year</strong>.<br>Try a different session, or register students with that year assigned.</p>
+          </div>`;
+        return;
+      }
+
+      /* ── Loading state ── */
+      if (bodyEl) bodyEl.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;padding:40px 0;justify-content:center;color:var(--text-muted);font-size:.85rem;">
+          <div class="spinner-ring" style="width:20px;height:20px;border-width:2px;flex-shrink:0;"></div>
+          Loading results for ${esc(sessionKey.replace('-','/'))} &middot; ${esc(HISTORY_STATE.term)} Term&hellip;
+        </div>`;
+      if (countBar) countBar.style.display = 'none';
+
+      HISTORY_STATE.studentData = {};
+
+      /* ── Full master subject list for this class (always the curriculum) ── */
+      const masterSubjects = (STATE.subjects || []).map(s => ({
+        id: s.id, subjectName: s.name || s.subjectName || s.id, subjectCode: s.code || s.subjectCode || ''
+      }));
+
+      try {
+        /* Fetch saved scores for all year-matched students in parallel.
+           Store as a map { [subjectId]: savedData } per student for O(1) merge. */
+        await Promise.all(yearStudents.map(async student => {
+          const examNo = student.examNumber || student.id;
+          try {
+            const subjColRef = collection(
+              db, 'students', examNo,
+              'enrollments', sessionKey,
+              'terms', HISTORY_STATE.term,
+              'subjects'
+            );
+            const snap = await getDocs(subjColRef);
+            const savedMap = {};
+            snap.forEach(d => { savedMap[d.id] = { id: d.id, ...d.data() }; });
+            HISTORY_STATE.studentData[examNo] = savedMap;
+          } catch (_) {
+            HISTORY_STATE.studentData[examNo] = {};
+          }
+        }));
+
+        /* Count how many students have at least one subject score saved */
+        const filledStudentCount = yearStudents.filter(s => {
+          const m = HISTORY_STATE.studentData[s.examNumber || s.id] || {};
+          return Object.keys(m).length > 0;
+        }).length;
+        const totalStudentCount = yearStudents.length;
+        const pct = totalStudentCount > 0 ? Math.round((filledStudentCount / totalStudentCount) * 100) : 0;
+
+        /* ── Update progress count bar ── */
+        if (countBar) {
+          countBar.style.display = 'flex';
+          const fillEl  = document.getElementById('historyProgressFill');
+          const labelEl = document.getElementById('historyCountLabel');
+          const subEl   = document.getElementById('historyCountSub');
+          if (fillEl)  fillEl.style.width  = pct + '%';
+          if (labelEl) labelEl.textContent = `${filledStudentCount} / ${totalStudentCount}`;
+          if (subEl)   subEl.textContent   =
+            `${pct}% of ${esc(sessionKey.replace('-','/'))} students have results entered \u2014 ${esc(HISTORY_STATE.term)} Term`;
+        }
+
+        /* ── Compute per-student grand total for ranking ──
+           All registered students for the year are included.
+           Grand Total = sum of all subject totals (CA + Exam).
+           Students with NO scores at all get grandTotal = null and are placed
+           at the bottom (unranked visually, but still counted in total). */
+        const studentAvgMap = {}; // examNo → grand total (number) or null
+        yearStudents.forEach(student => {
+          const examNo   = student.examNumber || student.id;
+          const savedMap = HISTORY_STATE.studentData[examNo] || {};
+          const scored   = masterSubjects
+            .map(ms => savedMap[ms.id])
+            .filter(s => s && s.total !== null && s.total !== undefined);
+          studentAvgMap[examNo] = scored.length > 0
+            ? scored.reduce((a, s) => a + (s.total || 0), 0)
+            : null;
+        });
+
+        /* Sort: students WITH scores ranked by avg desc;
+           students with null avg sorted after all scored students.
+           Ties share the same rank; the next rank skips accordingly. */
+        const allExamNos = yearStudents.map(s => s.examNumber || s.id);
+        const sortedExamNos = [...allExamNos].sort((a, b) => {
+          const av = studentAvgMap[a], bv = studentAvgMap[b];
+          if (av === null && bv === null) return 0;
+          if (av === null) return 1;   // a goes after b
+          if (bv === null) return -1;  // b goes after a
+          return bv - av;              // higher avg = better rank
+        });
+
+        const rankMap = {}; // examNo → 1-based rank
+        let currentRank = 1;
+        sortedExamNos.forEach((examNo, idx) => {
+          if (studentAvgMap[examNo] === null) {
+            rankMap[examNo] = null; // truly no scores — show as unranked
+          } else if (idx > 0 && studentAvgMap[examNo] === studentAvgMap[sortedExamNos[idx - 1]]) {
+            rankMap[examNo] = rankMap[sortedExamNos[idx - 1]]; // tie — same rank
+            currentRank++; // next distinct rank still advances
+          } else {
+            rankMap[examNo] = currentRank;
+            currentRank++;
+          }
+        });
+
+        const totalStudentsInYear = yearStudents.length;
+
+        /* ── Build roster grid ── */
+        bodyEl.innerHTML = '';
+        const grid = document.createElement('div');
+        grid.className = 'history-roster-grid';
+
+        yearStudents.forEach(student => {
+          const examNo  = student.examNumber || student.id;
+          const savedMap = HISTORY_STATE.studentData[examNo] || {};
+
+          /* Always show the FULL master subject list.
+             Merge saved scores into it; subjects without scores get blank inputs. */
+          const subjectList = masterSubjects.map(ms => {
+            const saved = savedMap[ms.id] || {};
+            return {
+              id:          ms.id,
+              subjectName: ms.subjectName,
+              subjectCode: ms.subjectCode,
+              ca:          saved.ca   !== undefined ? saved.ca   : '',
+              exam:        saved.exam !== undefined ? saved.exam : '',
+              total:       saved.total !== undefined && saved.total !== null ? saved.total : null
+            };
+          });
+
+          const scoredSubjects = subjectList.filter(s => s.total !== null);
+          const hasFill        = scoredSubjects.length > 0;
+          const avgNum = hasFill
+            ? scoredSubjects.reduce((a, s) => a + (s.total || 0), 0) / scoredSubjects.length
+            : null;
+          const avg = avgNum !== null ? avgNum.toFixed(1) : null;
+          const overallGrade = computeGrade(avgNum);
+          const initials       = getInitials(student.fullName || '?');
+          const filledSubjCount = scoredSubjects.length;
+          const totalSubjCount  = masterSubjects.length;
+
+          /* Position / rank for this student */
+          const studentRank = rankMap[examNo] || null;
+          const ordinal     = studentRank ? computeOrdinal(studentRank) : null;
+          const posCls      = posClass(studentRank);
+          const posHtml = ordinal
+            ? `<span class="hrcard-position ${posCls}" title="Position in class for ${HISTORY_STATE.session.replace('-','/')} · ${HISTORY_STATE.term} Term">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                ${ordinal}&nbsp;/&nbsp;${totalStudentsInYear}
+               </span>`
+            : `<span class="hrcard-position pos-none" title="No scores entered yet">—&nbsp;/&nbsp;${totalStudentsInYear}</span>`;
+
+          /* ── Card ── */
+          const card = document.createElement('div');
+          card.className = 'history-roster-card' + (hasFill ? ' has-results' : '');
+          card.dataset.exam = examNo;
+
+          /* Editor rows: every subject, pre-filled where data exists */
+          const editorRows = subjectList.map(s => {
+            const hasScore = s.total !== null;
+            const rowStyle = hasScore ? '' : 'background:rgba(255,255,255,0.5);';
+            return `
+              <tr style="${rowStyle}">
+                <td>
+                  <div style="font-weight:600;font-size:.82rem;color:var(--text-primary);">${esc(s.subjectName)}</div>
+                  ${s.subjectCode ? `<div style="font-family:var(--font-mono);font-size:.68rem;color:var(--text-muted);">${esc(s.subjectCode)}</div>` : ''}
+                </td>
+                <td>
+                  <input type="number" min="0" max="30"
+                    class="hrcard-score-input"
+                    data-field="ca" data-subj="${esc(s.id)}"
+                    value="${s.ca !== '' && s.ca !== undefined ? s.ca : ''}"
+                    placeholder="0" />
+                </td>
+                <td>
+                  <input type="number" min="0" max="70"
+                    class="hrcard-score-input"
+                    data-field="exam" data-subj="${esc(s.id)}"
+                    value="${s.exam !== '' && s.exam !== undefined ? s.exam : ''}"
+                    placeholder="0" />
+                </td>
+                <td>
+                  <span class="hrcard-total" data-subj="${esc(s.id)}"
+                    style="font-family:var(--font-mono);font-weight:700;color:var(--sidebar-mid);">
+                    ${s.total !== null ? s.total : '\u2014'}
+                  </span>
+                </td>
+                <td>
+                  <span class="grade-badge ${gradeClass(computeGrade(s.total))}"
+                    style="width:26px;height:26px;font-size:.68rem;"
+                    data-grade="${esc(s.id)}">
+                    ${computeGrade(s.total) || '\u2014'}
+                  </span>
+                </td>
+              </tr>`;
+          }).join('');
+
+          card.innerHTML = `
+            <div class="history-roster-card-header">
+              <div class="hrcard-avatar">${esc(initials)}</div>
+              <div class="hrcard-info">
+                <div class="hrcard-name">${esc(student.fullName || '\u2014')}</div>
+                <div class="hrcard-exam">${esc(examNo)}</div>
+              </div>
+              <div class="hrcard-status">
+                ${posHtml}
+                ${avg !== null ? `<span class="hrcard-avg">${avg}</span><span class="hrcard-overall-grade ${gradeClass(overallGrade)}" title="Overall grade">${overallGrade || '—'}</span>` : ''}
+                <span class="hrcard-pill ${hasFill ? 'filled' : 'empty'}">
+                  ${hasFill ? filledSubjCount + '\u202f/\u202f' + totalSubjCount + ' subj' : 'No results'}
+                </span>
+              </div>
+              <svg class="hrcard-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </div>
+            <div class="hrcard-editor">
+              <div class="hrcard-editor-inner">
+                <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <span>${totalSubjCount} subjects shown &mdash; <strong style="color:var(--sidebar-mid);">${filledSubjCount} filled</strong>, ${totalSubjCount - filledSubjCount} blank</span>
+                  ${ordinal ? `<span style="margin-left:auto;font-family:var(--font-mono);font-size:.7rem;color:var(--sidebar-mid);font-weight:700;">Class Position: ${ordinal} of ${totalStudentsInYear} students</span>` : `<span style="margin-left:auto;font-size:.7rem;color:var(--text-muted);">Position: pending scores</span>`}
+                </div>
+                <table class="hrcard-editor-table">
+                  <thead>
+                    <tr>
+                      <th style="min-width:120px;">Subject</th>
+                      <th>CA&nbsp;/30</th>
+                      <th>Exam&nbsp;/70</th>
+                      <th>Total</th>
+                      <th>Grade</th>
+                    </tr>
+                  </thead>
+                  <tbody>${editorRows}</tbody>
+                </table>
+                <div class="hrcard-save-row">
+                  <button class="btn btn-outline btn-sm hrcard-cancel-btn">Cancel</button>
+                  <button class="btn btn-success btn-sm hrcard-save-btn"
+                    data-exam="${esc(examNo)}"
+                    data-name="${esc(student.fullName || '')}">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                      <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            </div>`;
+
+          /* Toggle expand on header click */
+          card.querySelector('.history-roster-card-header').addEventListener('click', () => {
+            const wasOpen = card.classList.contains('is-editing');
+            grid.querySelectorAll('.history-roster-card.is-editing').forEach(c => c.classList.remove('is-editing'));
+            if (!wasOpen) card.classList.add('is-editing');
+          });
+
+          /* Live recalc: total + grade update as teacher types */
+          card.querySelectorAll('.hrcard-score-input').forEach(inp => {
+            inp.addEventListener('input', () => {
+              /* Clamp value to allowed range */
+              const max = inp.dataset.field === 'ca' ? 30 : 70;
+              if (inp.value !== '' && Number(inp.value) > max) inp.value = max;
+              if (inp.value !== '' && Number(inp.value) < 0)   inp.value = 0;
+
+              const subjId = inp.dataset.subj;
+              const caInp  = card.querySelector(`[data-subj="${subjId}"][data-field="ca"]`);
+              const exInp  = card.querySelector(`[data-subj="${subjId}"][data-field="exam"]`);
+              const caVal  = caInp && caInp.value !== '' ? Number(caInp.value) : null;
+              const exVal  = exInp && exInp.value !== '' ? Number(exInp.value) : null;
+              const total  = (caVal !== null && exVal !== null) ? caVal + exVal : null;
+              const grade  = computeGrade(total);
+
+              const totalEl = card.querySelector(`.hrcard-total[data-subj="${subjId}"]`);
+              const gradeEl = card.querySelector(`[data-grade="${subjId}"]`);
+              if (totalEl) totalEl.textContent = total !== null ? total : '\u2014';
+              if (gradeEl) {
+                gradeEl.textContent = grade || '\u2014';
+                gradeEl.className   = `grade-badge ${gradeClass(grade)}`;
+                gradeEl.style.cssText = 'width:26px;height:26px;font-size:.68rem;';
+              }
+            });
+          });
+
+          /* Cancel */
+          card.querySelector('.hrcard-cancel-btn').addEventListener('click', e => {
+            e.stopPropagation();
+            card.classList.remove('is-editing');
+          });
+
+          /* Save — batch-writes every subject that has at least one value */
+          card.querySelector('.hrcard-save-btn').addEventListener('click', async e => {
+            e.stopPropagation();
+            const saveBtn    = e.currentTarget;
+            const examNumber = saveBtn.dataset.exam;
+            const stuName    = saveBtn.dataset.name;
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving\u2026';
+
+            try {
+              const batch = writeBatch(db);
+              let hasData = false;
+
+              subjectList.forEach(subj => {
+                const caInp = card.querySelector(`[data-subj="${subj.id}"][data-field="ca"]`);
+                const exInp = card.querySelector(`[data-subj="${subj.id}"][data-field="exam"]`);
+                const caVal = caInp && caInp.value !== '' ? Number(caInp.value) : null;
+                const exVal = exInp && exInp.value !== '' ? Number(exInp.value) : null;
+                if (caVal === null && exVal === null) return; /* skip untouched rows */
+                hasData = true;
+
+                const total = (caVal !== null && exVal !== null) ? caVal + exVal : null;
+                const grade = computeGrade(total);
+
+                const subjRef = doc(
+                  db,
+                  'students',    examNumber,
+                  'enrollments', HISTORY_STATE.session,
+                  'terms',       HISTORY_STATE.term,
+                  'subjects',    subj.id
+                );
+                batch.set(subjRef, {
+                  subjectName:  subj.subjectName,
+                  subjectCode:  subj.subjectCode,
+                  ca: caVal, exam: exVal, total, grade,
+                  committedBy:  STATE.teacher?.uid || 'unknown',
+                  committedAt:  serverTimestamp()
+                }, { merge: true });
+
+                /* Update local cache */
+                if (!HISTORY_STATE.studentData[examNumber]) HISTORY_STATE.studentData[examNumber] = {};
+                HISTORY_STATE.studentData[examNumber][subj.id] = {
+                  id: subj.id, subjectName: subj.subjectName, subjectCode: subj.subjectCode,
+                  ca: caVal, exam: exVal, total, grade
+                };
+              });
+
+              if (!hasData) {
+                showToast('\u26a0 Enter at least one score before saving.');
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Save Changes`;
+                return;
+              }
+
+              await batch.commit();
+
+              /* Recompute card header stats */
+              const updatedMap     = HISTORY_STATE.studentData[examNumber] || {};
+              const updatedScored  = Object.values(updatedMap).filter(s => s.total !== null);
+              const newAvg         = updatedScored.length > 0
+                ? (updatedScored.reduce((a, s) => a + (s.total || 0), 0) / updatedScored.length).toFixed(1)
+                : null;
+              const newFilledCount = updatedScored.length;
+
+              const pillEl = card.querySelector('.hrcard-pill');
+              const avgEl  = card.querySelector('.hrcard-avg');
+              const metaEl = card.querySelector('.hrcard-editor-inner > div');
+
+              if (pillEl) {
+                pillEl.className   = 'hrcard-pill filled';
+                pillEl.textContent = newFilledCount + '\u202f/\u202f' + totalSubjCount + ' subj';
+              }
+              if (avgEl && newAvg) {
+                avgEl.textContent = newAvg;
+                const newOverallGrade = computeGrade(Number(newAvg));
+                const overallGradeEl  = card.querySelector('.hrcard-overall-grade');
+                if (overallGradeEl) {
+                  overallGradeEl.textContent = newOverallGrade || '—';
+                  overallGradeEl.className   = `hrcard-overall-grade ${gradeClass(newOverallGrade)}`;
+                }
+              } else if (!avgEl && newAvg) {
+                const newOverallGrade = computeGrade(Number(newAvg));
+                card.querySelector('.hrcard-status')
+                  .insertAdjacentHTML('afterbegin',
+                    `<span class="hrcard-avg">${newAvg}</span><span class="hrcard-overall-grade ${gradeClass(newOverallGrade)}" title="Overall grade">${newOverallGrade || '—'}</span>`);
+              }
+              if (metaEl) {
+                /* Recompute global rank after save */
+                const newAvgMap = {};
+                yearStudents.forEach(s2 => {
+                  const ex2  = s2.examNumber || s2.id;
+                  const m2   = HISTORY_STATE.studentData[ex2] || {};
+                  const sc2  = masterSubjects.map(ms => m2[ms.id]).filter(x => x && x.total !== null && x.total !== undefined);
+                  newAvgMap[ex2] = sc2.length > 0
+                    ? sc2.reduce((a, x) => a + (x.total || 0), 0)
+                    : null;
+                });
+
+                const allExNos = yearStudents.map(s2 => s2.examNumber || s2.id);
+                const sortedNew = [...allExNos].sort((a, b) => {
+                  const av = newAvgMap[a], bv = newAvgMap[b];
+                  if (av === null && bv === null) return 0;
+                  if (av === null) return 1;
+                  if (bv === null) return -1;
+                  return bv - av;
+                });
+                const newRankMap = {};
+                let rk = 1;
+                sortedNew.forEach((ex2, idx) => {
+                  if (newAvgMap[ex2] === null) {
+                    newRankMap[ex2] = null;
+                  } else if (idx > 0 && newAvgMap[ex2] === newAvgMap[sortedNew[idx - 1]]) {
+                    newRankMap[ex2] = newRankMap[sortedNew[idx - 1]];
+                    rk++;
+                  } else {
+                    newRankMap[ex2] = rk;
+                    rk++;
+                  }
+                });
+                /* Update ALL visible position badges in the grid */
+                grid.querySelectorAll('.history-roster-card').forEach(c => {
+                  const cExam = c.dataset.exam;
+                  const cRank = newRankMap[cExam] || null;
+                  const cOrd  = cRank ? computeOrdinal(cRank) : null;
+                  const cPosCls = posClass(cRank);
+                  const posBadgeEl = c.querySelector('.hrcard-position');
+                  if (posBadgeEl) {
+                    posBadgeEl.className = `hrcard-position ${cPosCls}`;
+                    posBadgeEl.title = `Position in class for ${HISTORY_STATE.session.replace('-','/')} · ${HISTORY_STATE.term} Term`;
+                    if (cOrd) {
+                      posBadgeEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px;flex-shrink:0;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>${cOrd}&nbsp;/&nbsp;${totalStudentsInYear}`;
+                    } else {
+                      posBadgeEl.innerHTML = `\u2014&nbsp;/&nbsp;${totalStudentsInYear}`;
+                      posBadgeEl.className = 'hrcard-position pos-none';
+                    }
+                  }
+                });
+                const thisRank = newRankMap[examNumber] || null;
+                const thisOrd  = thisRank ? computeOrdinal(thisRank) : null;
+                metaEl.innerHTML = `<span>${totalSubjCount} subjects shown &mdash; <strong style="color:var(--sidebar-mid);">${newFilledCount} filled</strong>, ${totalSubjCount - newFilledCount} blank</span>${thisOrd ? `<span style="margin-left:auto;font-family:var(--font-mono);font-size:.7rem;color:var(--sidebar-mid);font-weight:700;">Class Position: ${thisOrd} of ${totalStudentsInYear} students</span>` : `<span style="margin-left:auto;font-size:.7rem;color:var(--text-muted);">Position: pending scores</span>`}`;
+              }
+              card.classList.add('has-results');
+              card.classList.remove('is-editing');
+
+              /* Update class-level progress bar */
+              const filledNow = yearStudents.filter(s2 => {
+                const m = HISTORY_STATE.studentData[s2.examNumber || s2.id] || {};
+                return Object.keys(m).length > 0;
+              }).length;
+              const pct2   = Math.round((filledNow / yearStudents.length) * 100);
+              const fillEl = document.getElementById('historyProgressFill');
+              const lblEl  = document.getElementById('historyCountLabel');
+              const subEl  = document.getElementById('historyCountSub');
+              if (fillEl) fillEl.style.width = pct2 + '%';
+              if (lblEl)  lblEl.textContent  = `${filledNow} / ${yearStudents.length}`;
+              if (subEl)  subEl.textContent  =
+                `${pct2}% of ${esc(sessionKey.replace('-','/'))} students have results entered \u2014 ${esc(HISTORY_STATE.term)} Term`;
+
+              showToast(`\u2713 Scores saved for ${esc(stuName)}`);
+
+            } catch (err) {
+              console.error('History save error:', err);
+              showToast('\u2717 Save failed. Check your connection.');
+            } finally {
+              saveBtn.disabled = false;
+              saveBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Save Changes`;
+            }
+          });
+
+          grid.appendChild(card);
+        });
+
+        bodyEl.appendChild(grid);
+
+      } catch (err) {
+        console.error('History load error:', err);
+        if (bodyEl) bodyEl.innerHTML =
+          `<div class="history-empty">Failed to load results. Check your connection and try again.</div>`;
+      }
+    }
+
+
+
+    /* ════════════════════════════════════════════════════════════
+       SCORE ENTRY TABLE (DESKTOP)
+       Reads from STATE.subjects — populated by curriculum router.
+    ════════════════════════════════════════════════════════════ */
+    function buildScoreTable() {
+      const tbody = document.getElementById('scoreTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      STATE.subjects.forEach(subj => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>
+            <div class="subject-label">${esc(subj.name)}</div>
+            <div class="subject-code">${esc(subj.code)}</div>
+          </td>
+          <td><input type="number" min="0" max="30" class="score-input" id="ca-${subj.id}" placeholder="—" /></td>
+          <td><input type="number" min="0" max="70" class="score-input" id="exam-${subj.id}" placeholder="—" /></td>
+          <td><span class="total-cell zero" id="total-${subj.id}">—</span></td>
+          <td><span class="grade-badge grade-none" id="grade-${subj.id}">—</span></td>
+        `;
+        const caInp   = row.querySelector('#ca-'   + subj.id);
+        const examInp = row.querySelector('#exam-' + subj.id);
+        if (caInp)   caInp.addEventListener('input',   () => onScoreInput(subj.id, 'ca',   caInp,   false));
+        if (examInp) examInp.addEventListener('input', () => onScoreInput(subj.id, 'exam', examInp, false));
+        tbody.appendChild(row);
+      });
+    }
+
+    /* ── Mobile card drawers — reads from STATE.subjects ── */
+    function buildMobileCards() {
+      const list = document.getElementById('msbList');
+      if (!list) return;
+      list.innerHTML = '';
+      STATE.subjects.forEach(subj => {
+        const card = document.createElement('div');
+        card.className = 'msb-row';
+        card.id = 'msb-' + subj.id;
+        card.innerHTML = `
+          <button class="msb-trigger" type="button">
+            <div class="msb-subject-name">${esc(subj.name)}</div>
+            <div class="msb-total-bubble" id="msb-total-${subj.id}">—</div>
+            <svg class="msb-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="msb-drawer">
+            <div class="msb-drawer-inner">
+              <div class="msb-field">
+                <label>CA Score / 30</label>
+                <input type="number" min="0" max="30" class="score-input" id="mob-ca-${subj.id}" placeholder="—" />
+              </div>
+              <div class="msb-field">
+                <label>Exam Score / 70</label>
+                <input type="number" min="0" max="70" class="score-input" id="mob-exam-${subj.id}" placeholder="—" />
+              </div>
+            </div>
+          </div>
+        `;
+        const trigger = card.querySelector('.msb-trigger');
+        if (trigger) trigger.addEventListener('click', () => card.classList.toggle('open'));
+
+        const caInp   = card.querySelector('#mob-ca-'   + subj.id);
+        const examInp = card.querySelector('#mob-exam-' + subj.id);
+        if (caInp)   caInp.addEventListener('input',   () => onScoreInput(subj.id, 'ca',   caInp,   true));
+        if (examInp) examInp.addEventListener('input', () => onScoreInput(subj.id, 'exam', examInp, true));
+
+        list.appendChild(card);
+      });
+    }
+
+    /* ── Score input handler — syncs desktop ↔ mobile ── */
+    function onScoreInput(subjId, field, inputEl, isMobile) {
+      const raw   = inputEl.value.trim();
+      const max   = field === 'ca' ? 30 : 70;
+      const value = raw === '' ? '' : Math.min(Number(raw), max);
+      if (raw !== '' && Number(raw) > max) inputEl.value = max;
+      if (!STATE.scores[subjId]) STATE.scores[subjId] = { ca: '', exam: '' };
+      STATE.scores[subjId][field] = value;
+
+      const desktopId = (field === 'ca' ? 'ca-' : 'exam-') + subjId;
+      const mobileId  = (field === 'ca' ? 'mob-ca-' : 'mob-exam-') + subjId;
+      const sibling   = document.getElementById(isMobile ? desktopId : mobileId);
+      if (sibling) sibling.value = value === '' ? '' : value;
+
+      recalcSubject(subjId);
+      recalcAverage();
+    }
+
+    function recalcSubject(subjId) {
+      const s       = STATE.scores[subjId] || { ca: '', exam: '' };
+      const caVal   = s.ca   === '' ? null : Number(s.ca);
+      const examVal = s.exam === '' ? null : Number(s.exam);
+      const total   = (caVal !== null && examVal !== null) ? caVal + examVal : null;
+      const grade   = computeGrade(total);
+
+      const totalCell = document.getElementById('total-' + subjId);
+      const gradeCell = document.getElementById('grade-' + subjId);
+      if (totalCell) {
+        totalCell.textContent = total !== null ? total : '—';
+        totalCell.className   = 'total-cell' + (total === null ? ' zero' : '');
+      }
+      if (gradeCell) {
+        gradeCell.textContent = grade || '—';
+        gradeCell.className   = 'grade-badge ' + gradeClass(grade);
+      }
+      const msbBubble = document.getElementById('msb-total-' + subjId);
+      if (msbBubble) {
+        msbBubble.textContent      = total !== null ? total : '—';
+        msbBubble.style.background = total !== null ? 'var(--sage-dark)' : '';
+        msbBubble.style.color      = total !== null ? 'var(--sidebar-mid)' : '';
+      }
+    }
+
+    function recalcAverage() {
+      const totals = [];
+      STATE.subjects.forEach(s => {
+        const sc = STATE.scores[s.id];
+        if (sc && sc.ca !== '' && sc.exam !== '') totals.push(Number(sc.ca) + Number(sc.exam));
+      });
+      const avg = totals.length > 0
+        ? (totals.reduce((a, b) => a + b, 0) / totals.length).toFixed(1)
+        : null;
+      const el = document.getElementById('avgScoreDisplay');
+      if (el) el.textContent = avg !== null ? avg : '—';
+    }
+
+    /* ── Clear scores ── */
+    const clearScoresBtn = document.getElementById('clearScoresBtn');
+    if (clearScoresBtn) {
+      clearScoresBtn.addEventListener('click', () => {
+        STATE.subjects.forEach(s => {
+          STATE.scores[s.id] = { ca: '', exam: '' };
+          ['ca-', 'exam-', 'mob-ca-', 'mob-exam-'].forEach(prefix => {
+            const el = document.getElementById(prefix + s.id);
+            if (el) el.value = '';
+          });
+          recalcSubject(s.id);
+        });
+        recalcAverage();
+        showToast('Scores cleared.');
+      });
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       SAVE & COMMIT RESULT SHEET — transactional writeBatch
+       Path: students/{examNumber}/enrollments/{session}/terms/{term}/subjects/{subjectId}
+    ════════════════════════════════════════════════════════════ */
+    const saveScoresBtn = document.getElementById('saveScoresBtn');
+    if (saveScoresBtn) {
+      saveScoresBtn.addEventListener('click', async () => {
+        if (!STATE.selectedStudent) {
+          showToast('⚠ Select a student before committing scores.');
+          return;
+        }
+
+        let hasData  = false;
+        let hasError = false;
+        STATE.subjects.forEach(s => {
+          const sc     = STATE.scores[s.id] || { ca: '', exam: '' };
+          const caEl   = document.getElementById('ca-'   + s.id);
+          const examEl = document.getElementById('exam-' + s.id);
+          if (sc.ca !== '' || sc.exam !== '') hasData = true;
+          const partial = (sc.ca !== '' && sc.exam === '') || (sc.ca === '' && sc.exam !== '');
+          if (partial) {
+            hasError = true;
+            if (caEl)   caEl.classList.toggle('error',   sc.ca   === '');
+            if (examEl) examEl.classList.toggle('error', sc.exam === '');
+          } else {
+            if (caEl)   caEl.classList.remove('error');
+            if (examEl) examEl.classList.remove('error');
+          }
+        });
+
+        if (hasError) { showToast('⚠ Fill both CA and Exam for each subject you wish to record.'); return; }
+        if (!hasData) { showToast('⚠ Enter at least one subject score before committing.'); return; }
+
+        saveScoresBtn.disabled    = true;
+        saveScoresBtn.textContent = 'Committing…';
+
+        try {
+          const { examNumber } = STATE.selectedStudent;
+          const sessionKey     = STATE.currentSession.replace(/\//g, '-');
+          const termKey        = STATE.currentTerm;
+
+          const batch = writeBatch(db);
+
+          STATE.subjects.forEach(subj => {
+            const sc     = STATE.scores[subj.id] || { ca: '', exam: '' };
+            const caVal  = sc.ca   !== '' ? Number(sc.ca)   : null;
+            const exVal  = sc.exam !== '' ? Number(sc.exam) : null;
+            if (caVal === null && exVal === null) return;
+
+            const total = (caVal !== null && exVal !== null) ? caVal + exVal : null;
+            const grade = computeGrade(total);
+
+            /* students/{examNumber}/enrollments/{session}/terms/{term}/subjects/{subjectId} */
+            const subjectRef = doc(
+              db,
+              'students', examNumber,
+              'enrollments', sessionKey,
+              'terms', termKey,
+              'subjects', subj.id
+            );
+
+            batch.set(subjectRef, {
+              subjectName: subj.name,
+              subjectCode: subj.code,
+              ca:          caVal,
+              exam:        exVal,
+              total:       total,
+              grade:       grade,
+              committedBy: STATE.teacher?.uid || 'unknown',
+              committedAt: serverTimestamp()
+            }, { merge: true });
+          });
+
+          await batch.commit();
+
+          showToast(
+            `✓ Result sheet committed!\n` +
+            `Student: ${STATE.selectedStudent.fullName}\n` +
+            `Session: ${STATE.currentSession} · Term: ${termKey}`
+          );
+          /* No auto-refresh needed — analytics are fetched on demand */
+
+        } catch (err) {
+          console.error('Batch commit error:', err);
+          showToast('✗ Commit failed. Check your connection and try again.');
+        } finally {
+          saveScoresBtn.disabled    = false;
+          saveScoresBtn.innerHTML   = `
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Save &amp; Commit Result Sheet
+          `;
+        }
+      });
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       BULK CSV UPLOAD & TEMPLATE DOWNLOAD
+    ════════════════════════════════════════════════════════════ */
+
+    /* ══════════════════════════════════════════════════════════════
+       BULK CSV — Template columns:
+         exam_number | full_name | {subj.id}_ca | {subj.id}_exam  (one col pair per subject)
+       One ROW per student. Teacher fills in ca/exam for each subject then uploads.
+    ══════════════════════════════════════════════════════════════ */
+
+    /* ── Download Template as .xlsx — all students × all subjects ── */
+    const downloadTemplateBtn = document.getElementById('downloadTemplateBtn');
+    if (downloadTemplateBtn) {
+      downloadTemplateBtn.addEventListener('click', () => {
+        if (typeof XLSX === 'undefined') { showToast('⚠ Excel library not loaded yet. Try again in a moment.'); return; }
+        const cls      = STATE.teacher?.assignedClass;
+        const session  = STATE.currentSession;
+        const term     = STATE.currentTerm;
+        const subjects = STATE.subjects;
+        const students = STATE.students.filter(s => {
+          const sy = (s.academicYear || s.enrolledSession || '').trim();
+          return (s.assignedClass || '') === (cls || '') && sy === session;
+        });
+
+        if (!subjects.length) { showToast('⚠ No subjects loaded yet.'); return; }
+        if (!students.length) { showToast('⚠ No students found for this class and session.'); return; }
+
+        /* Build worksheet data as array of arrays */
+        /* Row 1: instruction */
+        const instrRow = [`EduPortal NG Score Sheet | Class: ${cls} | Session: ${session.replace('-','/')} | Term: ${term} | DO NOT edit Exam No or column headers`];
+
+        /* Row 2: header — exam_number, full_name, then per-subject CA + EXAM */
+        const headerRow = ['exam_number', 'full_name'];
+        subjects.forEach(s => {
+          headerRow.push(`${s.name} CA (max 30)`);
+          headerRow.push(`${s.name} EXAM (max 70)`);
+        });
+
+        /* Row 3+: one row per student */
+        const dataRows = students.map(st => {
+          const row = [st.examNumber || st.id, st.fullName || ''];
+          subjects.forEach(() => { row.push(''); row.push(''); });
+          return row;
+        });
+
+        const wsData = [instrRow, headerRow, ...dataRows];
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+        /* Style: freeze top 2 rows, set column widths */
+        ws['!freeze'] = { xSplit: 0, ySplit: 2 };
+        ws['!cols'] = [
+          { wch: 20 }, { wch: 28 },
+          ...subjects.flatMap(() => [{ wch: 16 }, { wch: 16 }])
+        ];
+
+        /* Lock instruction row visually by making it span */
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Scores');
+
+        /* Add a second sheet with the subject ID key for the parser */
+        const keyData = [['subject_name', 'subject_id'], ...subjects.map(s => [s.name, s.id])];
+        const wsKey = XLSX.utils.aoa_to_sheet(keyData);
+        XLSX.utils.book_append_sheet(wb, wsKey, '_subject_key');
+
+        XLSX.writeFile(wb, `scores_${cls}_${session}_${term}.xlsx`);
+        showToast(`✓ Excel template downloaded — ${students.length} student(s), ${subjects.length} subject(s).`);
+      });
+    }
+
+    /* ── Upload CSV Button (triggers hidden file input) ── */
+    const uploadCsvBtn = document.getElementById('uploadCsvBtn');
+    const csvFileInput = document.getElementById('csvFileInput');
+    if (uploadCsvBtn && csvFileInput) {
+      uploadCsvBtn.addEventListener('click', () => csvFileInput.click());
+      csvFileInput.addEventListener('change', () => {
+        if (csvFileInput.files && csvFileInput.files[0]) {
+          parseBulkCsvFile(csvFileInput.files[0]);
+          csvFileInput.value = '';
+        }
+      });
+    }
+
+    /* ── Drag & Drop zone ── */
+    const bulkDropZone = document.getElementById('bulkDropZone');
+    if (bulkDropZone) {
+      bulkDropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        bulkDropZone.classList.add('drag-over');
+      });
+      bulkDropZone.addEventListener('dragleave', () => {
+        bulkDropZone.classList.remove('drag-over');
+      });
+      bulkDropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        bulkDropZone.classList.remove('drag-over');
+        const file = e.dataTransfer?.files?.[0];
+        if (file) parseBulkCsvFile(file);
+      });
+    }
+
+    /* ── Bulk Upload Parser — accepts .xlsx or .csv ── */
+    async function parseBulkCsvFile(file) {
+      const feedback = document.getElementById('bulkFeedback');
+      const isXlsx   = file.name.endsWith('.xlsx');
+      const isCsv    = file.name.endsWith('.csv') || file.type === 'text/csv';
+      if (!isXlsx && !isCsv) {
+        showToast('⚠ Please upload an .xlsx or .csv file.');
+        return;
+      }
+      if (typeof XLSX === 'undefined') { showToast('⚠ Excel library not loaded. Refresh and try again.'); return; }
+      if (feedback) feedback.textContent = 'Reading file…';
+
+      /* ── Read file into SheetJS workbook ── */
+      let wb;
+      try {
+        const buf = await file.arrayBuffer();
+        wb = XLSX.read(buf, { type: 'array' });
+      } catch (e) {
+        showToast('✗ Could not read file: ' + e.message); return;
+      }
+
+      /* Use first sheet (Scores) */
+      const ws       = wb.Sheets[wb.SheetNames[0]];
+      const allRows  = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+      /* Find the header row — it's the one containing 'exam_number' */
+      let headerRowIdx = -1;
+      for (let r = 0; r < Math.min(allRows.length, 5); r++) {
+        const rowStr = allRows[r].map(c => String(c).trim().toLowerCase()).join(',');
+        if (rowStr.includes('exam_number')) { headerRowIdx = r; break; }
+      }
+      if (headerRowIdx === -1) {
+        showToast('⚠ Could not find header row with "exam_number". Use the downloaded template.');
+        if (feedback) feedback.textContent = ''; return;
+      }
+
+      const headers = allRows[headerRowIdx].map(c => String(c).trim().toLowerCase());
+      const idxExam = headers.indexOf('exam_number');
+
+      /* Build subject column map from headers:
+         Header format: "{Subject Name} CA (max 30)" / "{Subject Name} EXAM (max 70)"
+         Match by subject name (from STATE.subjects) */
+      const subjectColMap = {}; // subjectId → { caIdx, examIdx }
+      STATE.subjects.forEach(subj => {
+        const nameL   = subj.name.trim().toLowerCase();
+        const caIdx   = headers.findIndex(h => h.includes(nameL) && h.includes('ca'));
+        const examIdx = headers.findIndex(h => h.includes(nameL) && h.includes('exam'));
+        if (caIdx !== -1 || examIdx !== -1) {
+          subjectColMap[subj.id] = { caIdx, examIdx };
+        }
+      });
+
+      if (!Object.keys(subjectColMap).length) {
+        showToast('⚠ No subject columns matched. Make sure you are using the downloaded template without renaming columns.');
+        if (feedback) feedback.textContent = ''; return;
+      }
+
+      const session  = STATE.currentSession;
+      const term     = STATE.currentTerm;
+      const subjects = STATE.subjects;
+      const gradeScale = [
+        { min: 75, grade: 'A1', remark: 'Distinction' },
+        { min: 70, grade: 'B2', remark: 'Credit' },
+        { min: 65, grade: 'B3', remark: 'Credit' },
+        { min: 60, grade: 'C4', remark: 'Credit' },
+        { min: 55, grade: 'C5', remark: 'Credit' },
+        { min: 50, grade: 'C6', remark: 'Credit' },
+        { min: 45, grade: 'D7', remark: 'Pass' },
+        { min: 40, grade: 'E8', remark: 'Pass' },
+        { min:  0, grade: 'F9', remark: 'Fail'  },
+      ];
+      const getGrade = total => {
+        for (const g of gradeScale) if (total >= g.min) return g;
+        return { grade: 'F9', remark: 'Fail' };
+      };
+
+      if (feedback) feedback.textContent = 'Saving to Firestore…';
+      let savedStudents = 0, skippedRows = 0;
+      const errors = [];
+      const dataRows = allRows.slice(headerRowIdx + 1);
+
+      for (const row of dataRows) {
+        const examNo = String(row[idxExam] || '').trim();
+        if (!examNo) { skippedRows++; continue; }
+
+        const student = STATE.students.find(st => {
+          const sy = (st.academicYear || st.enrolledSession || '').trim();
+          return (st.examNumber || '').trim().toLowerCase() === examNo.toLowerCase()
+            && sy === session;
+        });
+        if (!student) { skippedRows++; errors.push(`"${examNo}" not in class`); continue; }
+
+        try {
+          const batch = writeBatch(db);
+          let hasData = false;
+
+          for (const subj of subjects) {
+            const map     = subjectColMap[subj.id];
+            if (!map) continue;
+            const caRaw   = map.caIdx   >= 0 ? String(row[map.caIdx]   ?? '').trim() : '';
+            const examRaw = map.examIdx >= 0 ? String(row[map.examIdx] ?? '').trim() : '';
+            if (caRaw === '' && examRaw === '') continue;
+
+            const ca    = caRaw   !== '' ? Math.min(Math.max(0, Number(caRaw)),   30) : null;
+            const exam  = examRaw !== '' ? Math.min(Math.max(0, Number(examRaw)), 70) : null;
+            const total = (ca ?? 0) + (exam ?? 0);
+            const { grade, remark } = getGrade(total);
+
+            const subjRef = doc(db,
+              'students', student.examNumber || student.id,
+              'enrollments', session, 'terms', term, 'subjects', subj.id
+            );
+            batch.set(subjRef, {
+              subjectId: subj.id, subjectName: subj.name,
+              ca: ca ?? null, exam: exam ?? null,
+              total, grade, remark, session, term,
+              savedAt: serverTimestamp()
+            });
+            hasData = true;
+          }
+
+          if (hasData) { await batch.commit(); savedStudents++; }
+          else skippedRows++;
+        } catch (rowErr) {
+          errors.push(`${examNo}: ${rowErr.message}`);
+        }
+      }
+
+      const msg = `✓ ${savedStudents} student(s) saved.${skippedRows ? ' ' + skippedRows + ' skipped.' : ''}${errors.length ? ' Issues: ' + errors.slice(0,3).join('; ') : ''}`;
+      if (feedback) feedback.textContent = msg;
+      showToast(msg);
+      setTimeout(() => { if (feedback) feedback.textContent = ''; }, 8000);
+    }
+
+    const refreshBtn = document.getElementById('refreshAnalyticsBtn');
+    if (refreshBtn) refreshBtn.addEventListener('click', runFirestoreAnalytics);
+
+    /* ════════════════════════════════════════════════════════════
+       STUDENT REGISTRY RENDER
+       Only renders Firestore students — no local array fallback.
+    ════════════════════════════════════════════════════════════ */
+    /* ════════════════════════════════════════════════════════════
+       REGISTRY TABLE — grouped by academic year
+       Each year gets its own collapsible section + export button.
+    ════════════════════════════════════════════════════════════ */
+    function renderRegistryTable() {
+      const container = document.getElementById('registryYearSections');
+      if (!container) return;
+
+      if (STATE.students.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state" style="padding:60px 20px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M16 3.13a4 4 0 010 7.75"/>
+            </svg>
+            <h3>No students found</h3>
+            <p>No students enrolled in ${esc(STATE.teacher?.assignedClass || '—')} yet. Use Add New Student above.</p>
+          </div>`;
+        return;
+      }
+
+      /* Group students by academic year */
+      const yearMap = {};
+      STATE.students.forEach(s => {
+        const yr = (s.academicYear || s.enrolledSession || STATE.currentSession).trim();
+        if (!yearMap[yr]) yearMap[yr] = [];
+        yearMap[yr].push(s);
+      });
+
+      /* Sort years descending (most recent first) */
+      const sortedYears = Object.keys(yearMap).sort((a, b) => b.localeCompare(a));
+
+      container.innerHTML = '';
+
+      sortedYears.forEach(yearKey => {
+        const students = yearMap[yearKey];
+        const displayYear = yearKey.replace('-', '/');
+
+        const section = document.createElement('div');
+        section.className = 'reg-year-section';
+        section.dataset.year = yearKey;
+
+        /* Header row */
+        const header = document.createElement('div');
+        header.className = 'reg-year-header';
+        header.innerHTML = `
+          <div class="reg-year-title">
+            <span class="reg-year-badge">${esc(displayYear)}</span>
+            <div class="reg-year-summary">
+              <span class="reg-summary-chip">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                ${students.length} student${students.length !== 1 ? 's' : ''}
+              </span>
+              <span class="reg-summary-chip" style="color:var(--text-muted);font-style:italic;" title="Positions reflect current session &amp; term">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                Positions: ${(STATE.currentTerm || 'First')} Term
+              </span>
+            </div>
+          </div>
+          <div class="reg-year-export">
+            <button class="btn btn-outline btn-sm reg-export-btn" data-year="${esc(yearKey)}">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Export ${esc(displayYear)}
+            </button>
+          </div>`;
+
+        header.querySelector('.reg-export-btn').addEventListener('click', e => {
+          e.stopPropagation();
+          exportYearPinList(yearKey);
+        });
+
+        section.appendChild(header);
+
+        /* Compute positions for this year's students based on saved results
+           Uses HISTORY_STATE.studentData if already loaded for the matching session/term,
+           otherwise fetches from Firestore and caches. */
+        async function fetchAndRenderPositions(yearStudents2, yearKey2, tbodyEl) {
+          const sessionToUse = yearKey2;
+          const termToUse    = STATE.currentTerm || 'First';
+
+          // Fetch scores for all students if not yet cached for this session/term
+          const fetchPromises = yearStudents2.map(async stu => {
+            const examNo = stu.examNumber || stu.id;
+            if (HISTORY_STATE.session === sessionToUse && HISTORY_STATE.term === termToUse
+                && HISTORY_STATE.studentData[examNo] !== undefined) {
+              return; // already cached
+            }
+            try {
+              const subjColRef = collection(
+                db, 'students', examNo,
+                'enrollments', sessionToUse,
+                'terms', termToUse,
+                'subjects'
+              );
+              const snap = await getDocs(subjColRef);
+              const savedMap = {};
+              snap.forEach(d => { savedMap[d.id] = { id: d.id, ...d.data() }; });
+              if (!HISTORY_STATE.studentData) HISTORY_STATE.studentData = {};
+              HISTORY_STATE.studentData[examNo] = savedMap;
+            } catch (_) {
+              if (!HISTORY_STATE.studentData) HISTORY_STATE.studentData = {};
+              HISTORY_STATE.studentData[examNo] = {};
+            }
+          });
+          await Promise.all(fetchPromises);
+
+          const masterSubjectsLocal = (STATE.subjects || []).map(s => ({ id: s.id }));
+          const avgMapLocal = {};
+          yearStudents2.forEach(stu => {
+            const examNo = stu.examNumber || stu.id;
+            const m = HISTORY_STATE.studentData[examNo] || {};
+            const sc = masterSubjectsLocal.map(ms => m[ms.id]).filter(x => x && x.total !== null && x.total !== undefined);
+            avgMapLocal[examNo] = sc.length > 0
+              ? sc.reduce((a, x) => a + (x.total || 0), 0)
+              : null;
+          });
+
+          const allExNos = yearStudents2.map(s => s.examNumber || s.id);
+          const sortedLocal = [...allExNos].sort((a, b) => {
+            const av = avgMapLocal[a], bv = avgMapLocal[b];
+            if (av === null && bv === null) return 0;
+            if (av === null) return 1;
+            if (bv === null) return -1;
+            return bv - av;
+          });
+
+          const rankMapLocal = {};
+          let rkLocal = 1;
+          sortedLocal.forEach((ex, idx) => {
+            if (avgMapLocal[ex] === null) {
+              rankMapLocal[ex] = null;
+            } else if (idx > 0 && avgMapLocal[ex] === avgMapLocal[sortedLocal[idx - 1]]) {
+              rankMapLocal[ex] = rankMapLocal[sortedLocal[idx - 1]];
+              rkLocal++;
+            } else {
+              rankMapLocal[ex] = rkLocal;
+              rkLocal++;
+            }
+          });
+
+          const total = yearStudents2.length;
+
+          /* Update position cells in tbody */
+          tbodyEl.querySelectorAll('tr[data-exam]').forEach(row => {
+            const ex   = row.dataset.exam;
+            const rank = rankMapLocal[ex] || null;
+            const posCell = row.querySelector('.reg-pos-cell');
+            if (!posCell) return;
+            if (rank) {
+              const ord = computeOrdinal(rank);
+              const bc  = posBadgeClass(rank);
+              posCell.innerHTML = `<span class="pos-badge ${bc}">${ord}&nbsp;<span style="opacity:.6">/ ${total}</span></span>`;
+            } else {
+              posCell.innerHTML = `<span class="pos-badge none">—</span>`;
+            }
+          });
+        }
+
+        /* Table */
+        const tableWrap = document.createElement('div');
+        tableWrap.className = 'registry-table-wrap';
+
+        const table = document.createElement('table');
+        table.className = 'registry-table';
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Student Name</th>
+              <th>Exam Number</th>
+              <th>Class</th>
+              <th>Position</th>
+              <th>Access PIN</th>
+              <th>Actions</th>
+            </tr>
+          </thead>`;
+
+        const tbody = document.createElement('tbody');
+
+        students.forEach((student, idx) => {
+          const name    = student.fullName   || '—';
+          const examNum = student.examNumber || '—';
+          const cls     = student.assignedClass || STATE.teacher?.assignedClass || '—';
+          const pinVal  = student.pin || student.accessPin || '—';
+
+          const tr = document.createElement('tr');
+          tr.dataset.exam = examNum;
+          tr.innerHTML = `
+            <td style="color:var(--text-muted);font-family:var(--font-mono);font-size:.75rem;">${idx + 1}</td>
+            <td class="student-name-cell">${esc(name)}</td>
+            <td class="exam-num-cell">${esc(examNum)}</td>
+            <td><span class="student-class-badge">${esc(cls)}</span></td>
+            <td class="reg-pos-cell"><span class="pos-badge none" style="font-style:italic;font-size:.65rem;">Loading…</span></td>
+            <td class="pin-cell">${esc(pinVal)}</td>
+            <td>
+              <div class="action-icons">
+                <button class="action-icon-btn" title="Enter scores" data-exam="${esc(examNum)}" data-name="${esc(name)}" data-action="scores">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+                <button class="action-icon-btn" title="View score history" data-exam="${esc(examNum)}" data-name="${esc(name)}" data-action="history">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                </button>
+                <button class="action-icon-btn" title="Edit student name" data-id="${esc(student.id)}" data-name="${esc(name)}" data-action="edit" style="color:var(--gold);">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/>
+                  </svg>
+                </button>
+                <button class="action-icon-btn" title="Delete student" data-id="${esc(student.id)}" data-name="${esc(name)}" data-action="delete" style="color:var(--danger);">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                    <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+                  </svg>
+                </button>
+              </div>
+            </td>`;
+
+          /* Scores */
+          tr.querySelector('[data-action="scores"]').addEventListener('click', () => {
+            const found = STATE.students.find(s => s.examNumber === examNum);
+            if (found) {
+              mountStudentToSheet({ id: found.id, fullName: found.fullName, examNumber: found.examNumber });
+              const dd = document.getElementById('studentSelectDropdown');
+              if (dd) dd.value = found.examNumber;
+            }
+            switchView('upload');
+            showToast(`Sheet loaded for ${esc(name)}`);
+          });
+
+          /* History */
+          tr.querySelector('[data-action="history"]').addEventListener('click', () => {
+            const hiSessEl = document.getElementById('historySessionSelect');
+            if (hiSessEl) hiSessEl.value = yearKey;
+            HISTORY_STATE.session = yearKey;
+            STATE.currentSession  = yearKey;
+            updateHistoryContextBadge();
+            switchView('history');
+            runHistoryView();
+          });
+
+          /* Edit */
+          tr.querySelector('[data-action="edit"]').addEventListener('click', async () => {
+            const btn = tr.querySelector('[data-action="edit"]');
+            const newName = prompt(`Edit name for student:\n\nCurrent: ${btn.dataset.name}\n\nEnter new full name:`, btn.dataset.name);
+            if (!newName || newName.trim() === '' || newName.trim() === btn.dataset.name) return;
+            try {
+              const { doc: fsDoc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+              await updateDoc(fsDoc(db, 'students', btn.dataset.id), { fullName: newName.trim() });
+              showToast(`✓ Name updated to "${newName.trim()}"`);
+            } catch (err) {
+              console.error('Edit student error:', err);
+              showToast('✗ Failed to update name.');
+            }
+          });
+
+          /* Delete */
+          tr.querySelector('[data-action="delete"]').addEventListener('click', async () => {
+            const btn = tr.querySelector('[data-action="delete"]');
+            if (!confirm(`Delete "${btn.dataset.name}"?\n\nThis is permanent and cannot be undone.`)) return;
+            try {
+              const { doc: fsDoc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+              await deleteDoc(fsDoc(db, 'students', btn.dataset.id));
+              showToast(`✓ "${btn.dataset.name}" removed from registry.`);
+            } catch (err) {
+              console.error('Delete student error:', err);
+              showToast('✗ Failed to delete student.');
+            }
+          });
+
+          tbody.appendChild(tr);
+        });
+
+        table.appendChild(tbody);
+        tableWrap.appendChild(table);
+        section.appendChild(tableWrap);
+        container.appendChild(section);
+
+        /* Async: fetch and render class positions for this year's students */
+        fetchAndRenderPositions(students, yearKey, tbody).catch(err => {
+          console.warn('Position fetch failed for', yearKey, err);
+          tbody.querySelectorAll('.reg-pos-cell').forEach(cell => {
+            cell.innerHTML = `<span class="pos-badge none">—</span>`;
+          });
+        });
+      });
+    }
+
+    /* ── Bootstrap: render placeholder score table while auth resolves ──
+       applyTeacherProfile() replaces this with the correct tier once
+       the Firebase auth listener fires and the teacher profile loads. */
+    STATE.subjects = resolveSubjectsForClass('SSS 2A');
+    STATE.subjects.forEach(s => { STATE.scores[s.id] = { ca: '', exam: '' }; });
+    buildScoreTable();
+    buildMobileCards();
+
+  </script>
+</body>
+</html>

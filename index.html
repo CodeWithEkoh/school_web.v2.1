@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sage Scholar Academy — Premium K-12 in Benin City, Nigeria</title>
+<meta name="description" content="Premium K-12 private academy in Benin City. Cambridge & WAEC curriculum, STEM and coding, with a secure online result portal for parents and students."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <span class="logo-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>
+      </span>
+      <span class="logo-text">Sage Scholar<span>.</span></span>
+    </a>
+
+    <!-- Desktop nav (hidden on mobile) -->
+    <nav>
+      <a href="index.html" class="active">Home</a>
+      <a href="about.html">About</a>
+      <a href="admissions.html">Admissions</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+
+    <!-- Desktop portal button (hidden on mobile) -->
+    <a href="portal.html" class="btn-portal">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg>
+      Result Portal
+    </a>
+
+    <!-- Hamburger (visible on mobile only) -->
+    <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu" aria-expanded="false">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </div>
+
+  <!-- Mobile Dropdown Menu -->
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <div class="mobile-menu-inner">
+      <a href="index.html" class="active">Home</a>
+      <a href="about.html">About</a>
+      <a href="admissions.html">Admissions</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="contact.html">Contact</a>
+      <div class="mobile-menu-divider"></div>
+      <a href="portal.html" class="mobile-menu-portal">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg>
+        Result Portal
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ HERO ═══ -->
+<section id="hero-s">
+  <div class="hero-wrap-s">
+    <div class="hero-slides-s">
+
+      <!-- Slide 1 -->
+      <div class="hero-slide-s active-s">
+        <img src="https://sage-pathways-portal.lovable.app/assets/hero-students-C28eQSk8.jpg" alt="Students at Sage Scholar Academy"/>
+        <div class="hero-overlay-l-s"></div>
+        <div class="hero-overlay-b-s"></div>
+      </div>
+
+      <!-- Slide 2 -->
+      <div class="hero-slide-s">
+        <img src="https://sage-pathways-portal.lovable.app/assets/hero-stem-9ffOX6UQ.jpg" alt="STEM at Sage Scholar Academy"/>
+        <div class="hero-overlay-l-s"></div>
+        <div class="hero-overlay-b-s"></div>
+      </div>
+
+      <!-- Content Slides -->
+      <div class="hero-content-s" id="hero-content-1-s">
+        <div class="hero-text-s">
+          <div class="hero-badge-s">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg>
+            EST. 2008 · BENIN CITY, NIGERIA
+          </div>
+          <h1>Raising the next generation of <span>global scholars.</span></h1>
+          <p>A premium K-12 academy where Nigerian heritage meets world-class pedagogy. We cultivate curious minds, principled character, and future-ready skills.</p>
+          <div class="hero-btns-s">
+            <a href="#portal-cta-s" class="btn-primary-s">
+              Result Portal
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
+            <a href="#admissions-s" class="btn-ghost-s">Begin Admission</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-content-s" id="hero-content-2-s" style="opacity:0;transition:opacity 1s ease;pointer-events:none;">
+        <div class="hero-text-s">
+          <div class="hero-badge-s">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg>
+            STEM · CODING · INNOVATION
+          </div>
+          <h1>Empowering Digital Leaders through <span>STEM and Innovation.</span></h1>
+          <p>Hands-on coding, robotics, and design thinking from primary school onward — equipping every scholar with the digital fluency to shape tomorrow.</p>
+          <div class="hero-btns-s">
+            <a href="#portal-cta-s" class="btn-primary-s">
+              Result Portal
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
+            <a href="#admissions-s" class="btn-ghost-s">Begin Admission</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dots -->
+      <div class="hero-dots-s">
+        <button class="hero-dot-s active-s" data-slide="0" aria-label="Go to slide 1"></button>
+        <button class="hero-dot-s" data-slide="1" aria-label="Go to slide 2"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Bar -->
+  <div class="stats-bar-wrap-s" style="padding-top:0;">
+    <div class="stats-bar-s">
+      <div class="stat-s">
+        <div class="stat-num-s">98%</div>
+        <div class="stat-label-s">WAEC Pass</div>
+      </div>
+      <div class="stat-s">
+        <div class="stat-num-s">1:12</div>
+        <div class="stat-label-s">Teacher Ratio</div>
+      </div>
+      <div class="stat-s">
+        <div class="stat-num-s">15+</div>
+        <div class="stat-label-s">Years Heritage</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ADVANTAGE ═══ -->
+<section id="advantage-s" style="padding-top:5rem;">
+  <div class="container-s">
+    <div class="section-header-s reveal-s">
+      <div class="gold-bar-s"></div>
+      <h2>The Sage Advantage.</h2>
+      <p>Three commitments that shape every Sage scholar — academic rigor, digital fluency, and unshakeable character.</p>
+    </div>
+    <div class="advantage-cards-s">
+      <div class="adv-card-s reveal-s" style="transition-delay:.05s">
+        <div class="adv-icon-s">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.54 15H17a2 2 0 0 0-2 2v4.54"/><path d="M7 3.34V5a3 3 0 0 0 3 3a2 2 0 0 1 2 2c0 1.1.9 2 2 2a2 2 0 0 0 2-2c0-1.1.9-2 2-2h3.17"/><path d="M11 21.95V18a2 2 0 0 0-2-2a2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05"/><circle cx="12" cy="12" r="10"/></svg>
+        </div>
+        <h3>Global Standards</h3>
+        <p>Cambridge &amp; WAEC dual pathways prepare scholars for top universities at home and abroad.</p>
+      </div>
+      <div class="adv-card-s reveal-s" style="transition-delay:.15s">
+        <div class="adv-icon-s">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v2"/><path d="M12 2v2"/><path d="M17 20v2"/><path d="M17 2v2"/><path d="M2 12h2"/><path d="M2 17h2"/><path d="M2 7h2"/><path d="M20 12h2"/><path d="M20 17h2"/><path d="M20 7h2"/><path d="M7 20v2"/><path d="M7 2v2"/><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>
+        </div>
+        <h3>Digital First</h3>
+        <p>Coding, robotics, and a secure online portal — fluent in tomorrow's tools from day one.</p>
+      </div>
+      <div class="adv-card-s reveal-s" style="transition-delay:.25s">
+        <div class="adv-icon-s">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.414 14.414C21 12.828 22 11.5 22 9.5a5.5 5.5 0 0 0-9.591-3.676.6.6 0 0 1-.818.001A5.5 5.5 0 0 0 2 9.5c0 2.3 1.5 4 3 5.5l5.535 5.362a2 2 0 0 0 2.879.052 2.12 2.12 0 0 0-.004-3 2.124 2.124 0 1 0 3-3 2.124 2.124 0 0 0 3.004 0 2 2 0 0 0 0-2.828l-1.881-1.882a2.41 2.41 0 0 0-3.409 0l-1.71 1.71a2 2 0 0 1-2.828 0 2 2 0 0 1 0-2.828l2.823-2.762"/></svg>
+        </div>
+        <h3>Character First</h3>
+        <p>Leadership, service, and ethical conviction woven through every term and every year.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ABOUT ═══ -->
+<section id="about-s">
+  <div class="about-inner-s container-s">
+    <div class="reveal-s">
+      <div class="gold-bar-s"></div>
+      <h2 class="about-text-s" style="font-family:var(--font-display-s);font-size:clamp(1.8rem,3.5vw,2.9rem);font-weight:600;line-height:1.12;margin-top:1.2rem;">A heritage of excellence in academic inquiry &amp; ethical leadership.</h2>
+      <p style="color:var(--muted-s);margin-top:1.25rem;line-height:1.75;">At Sage Scholar Academy, we believe true education shapes both intellect and conscience. Our curriculum blends the rigor of the Cambridge framework with the cultural depth of Nigerian heritage — preparing students to lead with clarity in any room they walk into.</p>
+      <p style="color:var(--muted-s);margin-top:1rem;line-height:1.75;">From Nursery to Senior Secondary, every classroom is engineered for wonder, mentorship, and measurable growth.</p>
+      <div class="about-actions-s">
+        <a href="#about-s" class="btn-primary-s">
+          Our Story
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+        <div class="principal-s">
+          <div class="principal-avatar-s">AO</div>
+          <div>
+            <div class="principal-name-s">Dr. Ada Okoye</div>
+            <div class="principal-title-s">School Principal</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="about-image-wrap-s reveal-s" style="transition-delay:.15s">
+      <div class="about-img-frame-s">
+        <img src="https://sage-pathways-portal.lovable.app/assets/heritage-CBOxp-Fo.jpg" alt="Sage Scholar Academy campus building"/>
+      </div>
+      <div class="about-badge-accred-s">
+        <div class="big-s">A+</div>
+        <div class="small-s">Cambridge Accredited</div>
+      </div>
+      <div class="about-deco-s"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PATHWAYS ═══ -->
+<section id="pathways-s">
+  <div class="container-s">
+    <div class="section-header-s reveal-s">
+      <div class="gold-bar-s"></div>
+      <h2>The full K-12 academic journey.</h2>
+      <p>Three seamless stages, one continuum of excellence — engineered for the modern Nigerian global scholar.</p>
+    </div>
+    <div class="pathway-cards-s">
+      <div class="pathway-card-s reveal-s" style="transition-delay:.05s">
+        <div class="pathway-img-wrap-s">
+          <img src="https://sage-pathways-portal.lovable.app/assets/pathway-nursery-BHwUHx4n.jpg" alt="Nursery pathway"/>
+          <span class="pathway-stage-s">Stage 01</span>
+        </div>
+        <div class="pathway-body-s">
+          <div class="pathway-head-s">
+            <h3>Nursery</h3>
+            <span class="pathway-ages-s">Ages 2 – 5</span>
+          </div>
+          <p>Play-based Montessori foundations. Phonics, motor skills, social confidence and early numeracy in a nurturing bilingual environment.</p>
+          <div class="pathway-tags-s">
+            <span class="pathway-tag-s">Montessori</span>
+            <span class="pathway-tag-s">Phonics</span>
+            <span class="pathway-tag-s">Music &amp; Art</span>
+          </div>
+        </div>
+      </div>
+      <div class="pathway-card-s reveal-s" style="transition-delay:.15s">
+        <div class="pathway-img-wrap-s">
+          <img src="https://sage-pathways-portal.lovable.app/assets/pathway-primary-1Jn9w8c1.jpg" alt="Primary pathway"/>
+          <span class="pathway-stage-s">Stage 02</span>
+        </div>
+        <div class="pathway-body-s">
+          <div class="pathway-head-s">
+            <h3>Primary</h3>
+            <span class="pathway-ages-s">Ages 6 – 11</span>
+          </div>
+          <p>Cambridge Primary curriculum reinforced with Nigerian Studies, robotics, and ethics. Where curiosity meets discipline.</p>
+          <div class="pathway-tags-s">
+            <span class="pathway-tag-s">Cambridge</span>
+            <span class="pathway-tag-s">STEM Lab</span>
+            <span class="pathway-tag-s">Cultural Studies</span>
+          </div>
+        </div>
+      </div>
+      <div class="pathway-card-s reveal-s" style="transition-delay:.25s">
+        <div class="pathway-img-wrap-s">
+          <img src="https://sage-pathways-portal.lovable.app/assets/pathway-secondary-Dubrly3c.jpg" alt="Secondary pathway"/>
+          <span class="pathway-stage-s">Stage 03</span>
+        </div>
+        <div class="pathway-body-s">
+          <div class="pathway-head-s">
+            <h3>Secondary</h3>
+            <span class="pathway-ages-s">Ages 12 – 18</span>
+          </div>
+          <p>Designed for WAEC, NECO, &amp; JAMB success alongside IGCSE and A-Level pathways. Advanced research, leadership council, and Ivy-League-aligned college counselling.</p>
+          <div class="pathway-tags-s">
+            <span class="pathway-tag-s">WAEC · NECO · JAMB</span>
+            <span class="pathway-tag-s">A-Levels</span>
+            <span class="pathway-tag-s">College Prep</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ GALLERY ═══ -->
+<section id="gallery-s">
+  <div class="container-s">
+    <div class="section-header-s reveal-s">
+      <div class="gold-bar-s"></div>
+      <h2>Campus life, in motion.</h2>
+      <p>From labs to libraries, our spaces are designed for curiosity, collaboration, and confident play.</p>
+    </div>
+    <div class="gallery-grid-s">
+      <div class="gallery-item-s reveal-s"><img src="https://sage-pathways-portal.lovable.app/assets/gallery-science-QksUk6xA.jpg" alt="Science Lab"/><div class="gallery-overlay-s"></div><div class="gallery-label-s"><span>Science Lab</span></div></div>
+      <div class="gallery-item-s reveal-s" style="transition-delay:.08s"><img src="https://sage-pathways-portal.lovable.app/assets/gallery-library-BVJ10Qpy.jpg" alt="Library"/><div class="gallery-overlay-s"></div><div class="gallery-label-s"><span>Library</span></div></div>
+      <div class="gallery-item-s reveal-s" style="transition-delay:.16s"><img src="https://sage-pathways-portal.lovable.app/assets/gallery-sports-BubIeUjo.jpg" alt="Sports Field"/><div class="gallery-overlay-s"></div><div class="gallery-label-s"><span>Sports Field</span></div></div>
+      <div class="gallery-item-s reveal-s" style="transition-delay:.24s"><img src="https://sage-pathways-portal.lovable.app/assets/gallery-art-DQ3KPaBV.jpg" alt="Art Studio"/><div class="gallery-overlay-s"></div><div class="gallery-label-s"><span>Art Studio</span></div></div>
+      <div class="gallery-item-s reveal-s" style="transition-delay:.32s"><img src="https://sage-pathways-portal.lovable.app/assets/heritage-CBOxp-Fo.jpg" alt="Campus"/><div class="gallery-overlay-s"></div><div class="gallery-label-s"><span>Campus</span></div></div>
+      <div class="gallery-item-s reveal-s" style="transition-delay:.4s"><img src="https://sage-pathways-portal.lovable.app/assets/hero-students-C28eQSk8.jpg" alt="Classroom"/><div class="gallery-overlay-s"></div><div class="gallery-label-s"><span>Classroom</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PORTAL CTA ═══ -->
+<section id="portal-cta-s">
+  <div class="container-s">
+    <div class="portal-card-s reveal-s">
+      <div class="portal-badge-s">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+        SECURE PORTAL ACCESS
+      </div>
+      <h2>Secure Portal Access for Parents &amp; Scholars.</h2>
+      <p>View termly results, teacher remarks, and continuous assessments through our encrypted student portal — anytime, anywhere.</p>
+      <a href="portal.html" class="btn-gold-s">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg>
+        Enter Result Portal
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ MENTORS ═══ -->
+<section id="mentors-s">
+  <div class="container-s">
+    <div class="section-header-s reveal-s">
+      <div class="gold-bar-s"></div>
+      <h2>Meet our expert mentors.</h2>
+      <p>A faculty of accomplished educators, researchers, and industry voices guiding every scholar's journey.</p>
+    </div>
+    <div class="mentor-grid-s">
+      <div class="mentor-card-s reveal-s" style="transition-delay:.05s">
+        <div class="mentor-img-wrap-s">
+          <img src="https://sage-pathways-portal.lovable.app/assets/mentor-1-B9DExCYf.jpg" alt="Dr. Ada Okoye"/>
+        </div>
+        <h3>Dr. Ada Okoye</h3>
+        <p>Principal · Cambridge Ed.D.</p>
+        <div class="mentor-social-s">
+          <a href="#" aria-label="LinkedIn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+          </a>
+          <a href="#" aria-label="Email">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="mentor-card-s reveal-s" style="transition-delay:.15s">
+        <div class="mentor-img-wrap-s">
+          <img src="https://sage-pathways-portal.lovable.app/assets/mentor-2-ByQ4IR4h.jpg" alt="Mr. Tunde Bakare"/>
+        </div>
+        <h3>Mr. Tunde Bakare</h3>
+        <p>Head of Humanities</p>
+        <div class="mentor-social-s">
+          <a href="#" aria-label="LinkedIn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+          </a>
+          <a href="#" aria-label="Email">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="mentor-card-s reveal-s" style="transition-delay:.25s">
+        <div class="mentor-img-wrap-s">
+          <img src="https://sage-pathways-portal.lovable.app/assets/mentor-3-qk4yi4rv.jpg" alt="Ms. Chioma Eze"/>
+        </div>
+        <h3>Ms. Chioma Eze</h3>
+        <p>Director of STEM &amp; Innovation</p>
+        <div class="mentor-social-s">
+          <a href="#" aria-label="LinkedIn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+          </a>
+          <a href="#" aria-label="Email">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ADMISSIONS ═══ -->
+<section id="admissions-s">
+  <div class="admissions-inner-s">
+    <div class="reveal-s">
+      <div class="gold-bar-s"></div>
+      <h2 style="font-family:var(--font-display-s);font-size:clamp(1.8rem,3vw,2.7rem);font-weight:600;line-height:1.12;margin-top:1.2rem;">Begin your child's admission.</h2>
+      <p style="color:var(--muted-s);margin-top:1.2rem;font-size:1rem;line-height:1.75;">Limited seats per cohort. Submit a brief enquiry and our admissions office will reach out within 24 hours with the next steps.</p>
+      <div class="steps-s">
+        <div class="step-s"><span class="step-num-s">01</span><span>Submit your enquiry online</span></div>
+        <div class="step-s"><span class="step-num-s">02</span><span>Family interview &amp; campus tour</span></div>
+        <div class="step-s"><span class="step-num-s">03</span><span>Entrance assessment &amp; placement</span></div>
+        <div class="step-s"><span class="step-num-s">04</span><span>Offer letter &amp; onboarding</span></div>
+      </div>
+    </div>
+    <div class="enquiry-form-s reveal-s" style="transition-delay:.15s">
+      <h3>Make an enquiry</h3>
+      <div class="form-fields-s">
+        <div>
+          <label for="name-s">Parent / Guardian name</label>
+          <input type="text" id="name-s" placeholder="Full name"/>
+        </div>
+        <div class="form-row-s">
+          <div>
+            <label for="phone-s">Phone</label>
+            <input type="tel" id="phone-s" placeholder="+234…"/>
+          </div>
+          <div>
+            <label for="class-s">Target class</label>
+            <input type="text" id="class-s" placeholder="e.g. Year 4"/>
+          </div>
+        </div>
+        <div>
+          <label for="msg-s">Message</label>
+          <textarea id="msg-s" rows="4" placeholder="Tell us about your child"></textarea>
+        </div>
+        <button class="btn-primary-s btn-submit-s" type="button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
+          Send Enquiry
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ WhatsApp Floating Button ═══ -->
+<a href="https://wa.me/2348104219705?text=Hello%20Sage%20Scholar%20Academy,%20I%20would%20like%20to%20inquire%20about%20admissions." 
+   class="whatsapp-float" 
+   target="_blank">
+    <svg viewBox="0 0 32 32" class="whatsapp-icon">
+        <path d="M16 0c-8.837 0-16 7.163-16 16 0 2.825 0.733 5.476 2.017 7.783l-2.017 7.37 7.54-1.981c2.31 1.34 4.98 2.11 7.82 2.11 8.837 0 16-7.163 16-16s-7.163-16-16-16zM16 29.333c-2.52 0-4.88-0.66-6.93-1.81l-0.5-0.29-4.43 1.16 1.19-4.34-0.32-0.51c-1.28-2.08-1.96-4.49-1.96-6.99 0-7.35 5.98-13.33 13.33-13.33s13.33 5.98 13.33 13.33-5.98 13.33-13.33 13.33zM22.95 18.91c-0.38-0.19-2.23-1.1-2.58-1.22s-0.6-0.19-0.85 0.19c-0.25 0.38-0.97 1.22-1.19 1.47s-0.44 0.28-0.82 0.09c-0.38-0.19-1.59-0.58-3.03-1.87-1.12-1-1.88-2.24-2.1-2.62s-0.02-0.59 0.17-0.78c0.17-0.17 0.38-0.44 0.57-0.66s0.25-0.38 0.38-0.63 0.06-0.47-0.03-0.66c-0.09-0.19-0.85-2.06-1.17-2.82s-0.62-0.64-0.85-0.65c-0.22-0.01-0.47-0.01-0.72-0.01s-0.66 0.09-1 0.47c-0.34 0.38-1.31 1.28-1.31 3.12s1.34 3.62 1.53 3.87c0.19 0.25 2.64 4.03 6.39 5.65 0.89 0.39 1.59 0.62 2.13 0.8 0.9 0.28 1.71 0.24 2.35 0.15 0.72-0.11 2.23-0.91 2.54-1.78s0.31-1.62 0.22-1.78c-0.11-0.16-0.37-0.25-0.75-0.44z"></path>
+    </svg>
+</a>
+<!-- ═══ WhatsApp Floating Button end ═══ -->
+
+<!-- ═══ FOOTER ═══ -->
+<footer-s id="contact-s">
+  <div class="footer-inner-s">
+    <div class="footer-grid-s">
+      <div>
+        <div class="footer-logo-s">
+          <div class="logo-icon-s">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>
+          </div>
+          <span class="logo-text-s" style="color:var(--cream-s)">Sage Scholar Academy<span>.</span></span>
+        </div>
+        <p style="color: rgb(201, 201, 201);">Raising the next generation of Nigerian global scholars — with character, curiosity, and conviction.</p>
+        <div class="footer-social-s">
+          <a href="#" aria-label="Instagram">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+          </a>
+          <a href="#" aria-label="Twitter">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
+          </a>
+          <a href="#" aria-label="Facebook">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="footer-col-s">
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="admissions.html">Admissions</a></li>
+        <li><a href="gallery.html">Gallery</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="portal.html">Result Portal</a></li>
+        </ul>
+      </div>
+      <div class="footer-col-s">
+        <h4>Get in touch</h4>
+        <ul>
+          <li>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+            Ugbowo-Lagos Road, Benin City, Edo State.
+          </li>
+          <li>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"/></svg>
+            +234 812 345 6789
+          </li>
+          <li>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+            hello@sagescholar.ng
+          </li>
+        </ul>
+      </div>
+      <div class="footer-col-s">
+        <h4>Newsletter</h4>
+        <p style="margin-top:1rem;font-size:.875rem;color:rgba(250,248,243,.65);">Quarterly insights from our faculty.</p>
+        <div class="newsletter-form-s">
+          <input type="email" class="newsletter-input-s" placeholder="you@email.com" style="color:white">
+          <button class="newsletter-btn-s">Join</button>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom-s">
+      <p>© 2026 Sage Scholar Academy. All rights reserved.</p>
+      <div class="footer-links-s">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Cookies</a>
+      </div>
+    </div>
+  </div>
+</footer-s>
+
+<script>
+/* ── Hero Slideshow ── */
+(function(){
+  const slides = document.querySelectorAll('.hero-slide-s');
+  const contents = [document.getElementById('hero-content-1-s'), document.getElementById('hero-content-2-s')];
+  const dots = document.querySelectorAll('.hero-dot-s');
+  let current = 0, timer;
+
+  function goTo(n){
+    slides[current].classList.remove('active-s');
+    contents[current].style.opacity = '0';
+    contents[current].style.pointerEvents = 'none';
+    dots[current].classList.remove('active-s');
+    current = n;
+    slides[current].classList.add('active-s');
+    contents[current].style.opacity = '1';
+    contents[current].style.pointerEvents = 'all';
+    dots[current].classList.add('active-s');
+  }
+
+  dots.forEach((dot, i) => {
+    dot.addEventListener('click', () => { clearInterval(timer); goTo(i); startTimer(); });
+  });
+
+  function startTimer(){ timer = setInterval(() => goTo((current+1) % slides.length), 5000); }
+  startTimer();
+})();
+
+/* ── Reveal on Scroll ── */
+(function(){
+  const els = document.querySelectorAll('.reveal-s');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting) { e.target.classList.add('visible-s'); obs.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  els.forEach(el => obs.observe(el));
+})();
+</script>
+
+<script src="script.js"></script>
+
+</body>
+</html>

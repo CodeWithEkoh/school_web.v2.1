@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduPortal NG — School Result Checker</title>
+  <meta name="description" content="Secure student result portal for Nigerian schools. Check your results online." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231a6b3f'/><text y='24' x='5' font-size='22'>🎓</text></svg>" />
+
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --g-900: #0a2e1a;
+    --g-800: #0f3d24;
+    --g-700: #145230;
+    --g-600: #1a6b3f;
+    --g-500: #218a52;
+    --g-400: #2aab68;
+    --g-300: #4dc88a;
+    --g-200: #a8e6c5;
+    --g-100: #d4f4e4;
+    --g-50:  #f0fdf6;
+    --n-900: #111827;
+    --n-700: #374151;
+    --n-500: #6b7280;
+    --n-400: #9ca3af;
+    --n-300: #d1d5db;
+    --n-200: #e5e7eb;
+    --n-100: #f3f4f6;
+    --n-50:  #fafafa;
+    --white: #ffffff;
+    --gold:       #d4a843;
+    --gold-light: #f0d070;
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body:    'DM Sans', system-ui, sans-serif;
+    --font-mono:    'DM Mono', 'Courier New', monospace;
+    --shadow-sm:  0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+    --shadow-md:  0 4px 16px rgba(0,0,0,.10), 0 2px 6px rgba(0,0,0,.06);
+    --shadow-lg:  0 10px 40px rgba(0,0,0,.14), 0 4px 12px rgba(0,0,0,.08);
+    --shadow-xl:  0 20px 60px rgba(0,0,0,.18);
+    --radius-sm:  8px;
+    --radius-md:  14px;
+    --radius-lg:  22px;
+    --radius-xl:  32px;
+    --ease-out:    cubic-bezier(.16, 1, .3, 1);
+    --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+    --panel-px: clamp(28px, 4vw, 60px);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-size: 16px; -webkit-font-smoothing: antialiased; }
+  body { font-family: var(--font-body); background: var(--g-50); color: var(--n-900); overflow: hidden; }
+
+  .portal-wrapper { display: grid; grid-template-columns: 1fr 1fr; height: 100vh; overflow: hidden; }
+
+  /* ── Left Branding Panel ─────────────────────────────── */
+  .branding-panel {
+    position: relative;
+    background: linear-gradient(155deg, var(--g-900) 0%, var(--g-700) 45%, var(--g-500) 100%);
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: clamp(28px,4vh,48px) var(--panel-px);
+    overflow: hidden; color: var(--white);
+  }
+  .branding-panel::before, .branding-panel::after { content: ''; position: absolute; border-radius: 50%; pointer-events: none; }
+  .branding-panel::before {
+    width: clamp(220px,35vw,380px); height: clamp(220px,35vw,380px);
+    top: clamp(-140px,-15vh,-80px); right: clamp(-160px,-14vw,-100px);
+    background: radial-gradient(circle, rgba(255,255,255,.06) 0%, transparent 70%);
+    border: 1px solid rgba(255,255,255,.08);
+  }
+  .branding-panel::after {
+    width: clamp(140px,22vw,240px); height: clamp(140px,22vw,240px);
+    bottom: clamp(-100px,-10vh,-60px); left: clamp(-80px,-7vw,-40px);
+    background: radial-gradient(circle, rgba(42,171,104,.18) 0%, transparent 70%);
+    border: 1px solid rgba(42,171,104,.12);
+  }
+  .brand-top { position: relative; z-index: 1; flex-shrink: 0; }
+  .school-badge { display: flex; align-items: center; gap: 14px; margin-bottom: clamp(20px,3vh,32px); }
+  .badge-icon { width: 46px; height: 46px; background: rgba(255,255,255,.12); border: 1.5px solid rgba(255,255,255,.22); border-radius: var(--radius-md); display: grid; place-items: center; backdrop-filter: blur(8px); flex-shrink: 0; }
+  .badge-icon svg { width: 24px; height: 24px; fill: none; stroke: var(--g-300); stroke-width: 1.8; }
+  .school-name { font-family: var(--font-display); font-size: clamp(1rem,1.2vw,1.15rem); font-weight: 700; line-height: 1.2; color: var(--white); }
+  .school-tagline { font-size: .72rem; color: var(--g-200); margin-top: 2px; letter-spacing: .04em; text-transform: uppercase; }
+  .brand-headline { position: relative; z-index: 1; }
+  .headline-chip { display: inline-flex; align-items: center; gap: 6px; background: rgba(212,168,67,.18); border: 1px solid rgba(212,168,67,.35); color: var(--gold-light); font-size: .70rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 4px 11px; border-radius: 50px; margin-bottom: clamp(10px,1.4vh,16px); }
+  .headline-chip span { width: 5px; height: 5px; background: var(--gold); border-radius: 50%; display: block; }
+  .brand-headline h1 { font-family: var(--font-display); font-size: clamp(1.6rem,2.6vw,2.6rem); font-weight: 700; line-height: 1.16; color: var(--white); letter-spacing: -.02em; margin-bottom: clamp(10px,1.4vh,16px); }
+  .brand-headline h1 em { font-style: normal; color: var(--g-300); }
+  .brand-headline p { font-size: clamp(.82rem,1vw,.93rem); color: rgba(255,255,255,.65); line-height: 1.65; max-width: 340px; font-weight: 300; }
+  .stats-row { display: flex; gap: clamp(16px,2.5vw,28px); margin-top: clamp(20px,3vh,32px); position: relative; z-index: 1; }
+  .stat-item { display: flex; flex-direction: column; gap: 2px; }
+  .stat-number { font-family: var(--font-display); font-size: clamp(1.2rem,1.8vw,1.55rem); font-weight: 700; color: var(--white); line-height: 1; }
+  .stat-label { font-size: .70rem; color: rgba(255,255,255,.5); letter-spacing: .04em; text-transform: uppercase; }
+  .dot-grid { position: absolute; bottom: clamp(80px,14vh,130px); right: 40px; display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; opacity: .12; z-index: 0; }
+  .dot-grid span { width: 4px; height: 4px; border-radius: 50%; background: var(--white); display: block; }
+  .brand-footer { position: relative; z-index: 1; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding-top: clamp(14px,2vh,22px); border-top: 1px solid rgba(255,255,255,.1); }
+  .brand-footer p { font-size: .72rem; color: rgba(255,255,255,.35); }
+  .session-badge { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); color: rgba(255,255,255,.55); font-size: .70rem; padding: 4px 11px; border-radius: 50px; letter-spacing: .04em; }
+
+  /* ── Right Auth Panel ────────────────────────────────── */
+  .auth-panel { display: flex; flex-direction: column; background: var(--white); padding: clamp(28px,4vh,48px) var(--panel-px); height: 100vh; overflow-y: auto; overflow-x: hidden; }
+  .auth-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: clamp(14px,2vh,22px); flex-shrink: 0; }
+  .portal-label { font-size: .70rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--n-500); }
+  .help-link { font-size: .78rem; color: var(--g-500); text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 5px; transition: color .2s; }
+  .help-link:hover { color: var(--g-700); }
+
+  .role-toggle { display: flex; background: var(--n-100); border-radius: var(--radius-lg); padding: 5px; margin-bottom: clamp(14px,2vh,22px); position: relative; flex-shrink: 0; }
+  .toggle-slider { position: absolute; top: 5px; left: 5px; width: calc(50% - 5px); height: calc(100% - 10px); background: var(--white); border-radius: calc(var(--radius-lg) - 3px); box-shadow: var(--shadow-md); transition: transform .35s var(--ease-out); pointer-events: none; }
+  .role-toggle.teacher-active .toggle-slider { transform: translateX(calc(100%)); }
+  .toggle-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; background: none; border: none; cursor: pointer; border-radius: calc(var(--radius-lg) - 3px); font-family: var(--font-body); font-size: .86rem; font-weight: 500; color: var(--n-500); position: relative; z-index: 1; transition: color .25s; }
+  .toggle-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
+  .toggle-btn.active { color: var(--g-700); font-weight: 600; }
+
+  .form-section { flex: 1; display: none; flex-direction: column; animation: fadeSlideIn .38s var(--ease-out); min-height: 0; }
+  .form-section.active { display: flex; }
+  @keyframes fadeSlideIn { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+  .form-header { margin-bottom: clamp(14px,2vh,22px); flex-shrink: 0; }
+  .form-header h2 { font-family: var(--font-display); font-size: clamp(1.5rem,2.2vw,1.85rem); font-weight: 700; color: var(--n-900); letter-spacing: -.03em; margin-bottom: 4px; line-height: 1.15; }
+  .form-header p { font-size: .85rem; color: var(--n-500); line-height: 1.55; }
+  .form-header p strong { color: var(--g-600); font-weight: 600; }
+
+  .field-group { margin-bottom: clamp(10px,1.4vh,16px); }
+  .field-group label { display: block; font-size: .76rem; font-weight: 600; color: var(--n-700); letter-spacing: .03em; text-transform: uppercase; margin-bottom: 6px; }
+  .input-wrapper { position: relative; display: flex; align-items: center; }
+  .input-icon { position: absolute; left: 14px; width: 16px; height: 16px; stroke: var(--n-400); fill: none; stroke-width: 1.8; pointer-events: none; transition: stroke .2s; z-index: 1; }
+  .input-wrapper input, .input-wrapper select { width: 100%; padding: 11px 14px 11px 42px; border: 1.5px solid var(--n-300); border-radius: var(--radius-md); font-family: var(--font-body); font-size: .9rem; color: var(--n-900); background: var(--n-50); outline: none; transition: border-color .2s, background .2s, box-shadow .2s; -webkit-appearance: none; appearance: none; }
+  .input-wrapper select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 38px; }
+  .input-wrapper input:focus, .input-wrapper select:focus { border-color: var(--g-400); background: var(--white); box-shadow: 0 0 0 3px rgba(42,171,104,.1); }
+  .input-wrapper:focus-within .input-icon { stroke: var(--g-500); }
+  .input-wrapper input::placeholder { color: var(--n-400); font-weight: 300; }
+  .pin-toggle { position: absolute; right: 12px; background: none; border: none; cursor: pointer; padding: 4px; color: var(--n-500); display: grid; place-items: center; }
+  .pin-toggle svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .pin-toggle:hover { color: var(--g-600); }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .submit-btn { width: 100%; padding: 13px 22px; border: none; border-radius: var(--radius-md); cursor: pointer; font-family: var(--font-body); font-size: .93rem; font-weight: 600; letter-spacing: .02em; display: flex; align-items: center; justify-content: center; gap: 10px; position: relative; overflow: hidden; transition: transform .15s var(--ease-spring), box-shadow .2s; margin-top: clamp(10px,1.4vh,16px); flex-shrink: 0; }
+  .submit-btn::before { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,.12); opacity: 0; transition: opacity .2s; }
+  .submit-btn:hover::before { opacity: 1; }
+  .submit-btn:active { transform: scale(.98); }
+  .submit-btn.student-btn { background: linear-gradient(135deg, var(--g-600) 0%, var(--g-400) 100%); color: var(--white); box-shadow: 0 4px 20px rgba(33,138,82,.35); }
+  .submit-btn.student-btn:hover { box-shadow: 0 8px 30px rgba(33,138,82,.45); transform: translateY(-1px); }
+  .submit-btn.teacher-btn { background: linear-gradient(135deg, var(--g-900) 0%, var(--g-700) 100%); color: var(--white); box-shadow: 0 4px 20px rgba(10,46,26,.4); }
+  .submit-btn.teacher-btn:hover { box-shadow: 0 8px 30px rgba(10,46,26,.5); transform: translateY(-1px); }
+  .btn-arrow { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; transition: transform .2s var(--ease-spring); }
+  .submit-btn:hover .btn-arrow { transform: translateX(4px); }
+  .btn-spinner { display: none; width: 17px; height: 17px; border: 2px solid rgba(255,255,255,.3); border-top-color: var(--white); border-radius: 50%; animation: spin .6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .submit-btn.loading .btn-text, .submit-btn.loading .btn-arrow { display: none; }
+  .submit-btn.loading .btn-spinner { display: block; }
+  .submit-btn.loading { pointer-events: none; opacity: .85; }
+
+  .status-msg { display: none; align-items: flex-start; gap: 8px; padding: 10px 14px; border-radius: var(--radius-sm); font-size: .82rem; margin-top: clamp(6px,.8vh,10px); animation: fadeSlideIn .25s var(--ease-out); }
+  .status-msg.show { display: flex; }
+  .status-msg.error { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+  .status-msg.success { background: var(--g-50); border: 1px solid var(--g-200); color: var(--g-700); }
+  .status-msg svg { width: 15px; height: 15px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; margin-top: 1px; }
+
+  .form-footer { display: flex; align-items: center; justify-content: space-between; margin-top: clamp(10px,1.4vh,16px); padding-top: clamp(10px,1.4vh,16px); border-top: 1px solid var(--n-100); flex-shrink: 0; }
+  .footer-note { font-size: .76rem; color: var(--n-500); }
+  .footer-note a { color: var(--g-600); text-decoration: none; font-weight: 500; }
+  .footer-note a:hover { text-decoration: underline; }
+  .security-badge { display: flex; align-items: center; gap: 5px; font-size: .72rem; color: var(--n-400); }
+  .security-badge svg { width: 12px; height: 12px; stroke: var(--g-400); fill: none; stroke-width: 2; }
+
+  .divider { display: flex; align-items: center; gap: 12px; margin: clamp(10px,1.4vh,16px) 0; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--n-200); }
+  .divider span { font-size: .73rem; color: var(--n-400); font-weight: 500; white-space: nowrap; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--n-900); color: var(--white); padding: 12px 18px; border-radius: var(--radius-md); font-size: .82rem; font-weight: 500; box-shadow: var(--shadow-xl); display: flex; align-items: center; gap: 10px; z-index: 1000; transform: translateY(80px); opacity: 0; transition: transform .4s var(--ease-out), opacity .4s; max-width: 340px; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--g-400); flex-shrink: 0; }
+
+  /* ── Exam Number Lookup Modal ─────────────────────────── */
+  .en-backdrop { position: fixed; inset: 0; background: rgba(10,46,26,.72); backdrop-filter: blur(6px); z-index: 900; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; visibility: hidden; transition: opacity .32s var(--ease-out), visibility .32s var(--ease-out); }
+  .en-backdrop.open { opacity: 1; visibility: visible; }
+  .en-modal { background: #ffffff; border-radius: 22px; width: 100%; max-width: 520px; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 32px 80px rgba(10,46,26,.28); transform: translateY(28px) scale(0.97); transition: transform .36s var(--ease-spring); }
+  .en-backdrop.open .en-modal { transform: translateY(0) scale(1); }
+  .en-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 26px 28px 20px; border-bottom: 1px solid #f3f4f6; flex-shrink: 0; }
+  .en-header-icon { width: 42px; height: 42px; background: #f0fdf6; border: 1.5px solid #a8e6c5; border-radius: 12px; display: grid; place-items: center; flex-shrink: 0; margin-right: 14px; }
+  .en-header-icon svg { width: 20px; height: 20px; stroke: #1a6b3f; fill: none; stroke-width: 1.8; }
+  .en-header-text { flex: 1; }
+  .en-header-title { font-family: var(--font-display); font-size: 1.18rem; font-weight: 700; color: #111827; letter-spacing: -.02em; line-height: 1.2; }
+  .en-header-sub { font-size: .78rem; color: #6b7280; margin-top: 3px; line-height: 1.4; }
+  .en-close-btn { width: 32px; height: 32px; background: #f3f4f6; border: none; border-radius: 8px; cursor: pointer; display: grid; place-items: center; flex-shrink: 0; margin-left: 12px; transition: background .18s; }
+  .en-close-btn:hover { background: #e5e7eb; }
+  .en-close-btn svg { width: 15px; height: 15px; stroke: #374151; fill: none; stroke-width: 2; }
+  .en-security-notice { margin: 18px 28px 0; padding: 10px 14px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; display: flex; align-items: flex-start; gap: 9px; font-size: .75rem; color: #92400e; line-height: 1.5; flex-shrink: 0; }
+  .en-security-notice svg { width: 14px; height: 14px; stroke: #d97706; fill: none; stroke-width: 2; flex-shrink: 0; margin-top: 1px; }
+  .en-selector-area { padding: 18px 28px 0; flex-shrink: 0; }
+  .en-selector-label { display: block; font-size: .72rem; font-weight: 600; color: #374151; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 8px; }
+  .en-class-select { width: 100%; padding: 11px 38px 11px 14px; border: 1.5px solid #d1d5db; border-radius: 12px; font-family: var(--font-body); font-size: .9rem; color: #111827; background: #fafafa; outline: none; cursor: pointer; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; transition: border-color .2s, box-shadow .2s; }
+  .en-class-select:focus { border-color: #2aab68; background-color: #ffffff; box-shadow: 0 0 0 3px rgba(42,171,104,.12); }
+  .en-list-area { flex: 1; overflow-y: auto; padding: 0 28px; margin-top: 16px; margin-bottom: 4px; }
+  .en-list-area::-webkit-scrollbar { width: 4px; }
+  .en-list-area::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
+  .en-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px 20px; text-align: center; }
+  .en-placeholder-icon { width: 52px; height: 52px; background: #f0fdf6; border: 1.5px dashed #a8e6c5; border-radius: 14px; display: grid; place-items: center; margin-bottom: 14px; }
+  .en-placeholder-icon svg { width: 24px; height: 24px; stroke: #4dc88a; fill: none; stroke-width: 1.6; }
+  .en-placeholder p { font-size: .85rem; color: #6b7280; line-height: 1.5; }
+  .en-placeholder strong { display: block; font-size: .9rem; font-weight: 600; color: #374151; margin-bottom: 4px; }
+  .en-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px 20px; gap: 12px; }
+  .en-loading-spinner { width: 30px; height: 30px; border: 3px solid #e5e7eb; border-top-color: #2aab68; border-radius: 50%; animation: spin .7s linear infinite; }
+  .en-loading p { font-size: .82rem; color: #6b7280; }
+  .en-error-state { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 28px 20px; text-align: center; }
+  .en-error-state svg { width: 30px; height: 30px; stroke: #b91c1c; fill: none; stroke-width: 1.6; }
+  .en-error-state p { font-size: .82rem; color: #b91c1c; }
+  .en-retry-btn { margin-top: 4px; padding: 6px 16px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #b91c1c; font-family: var(--font-body); font-size: .78rem; font-weight: 600; cursor: pointer; transition: background .16s; }
+  .en-retry-btn:hover { background: #fee2e2; }
+  .en-list-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .en-list-class-label { font-family: var(--font-display); font-size: .92rem; font-weight: 600; color: #111827; }
+  .en-student-count { font-size: .72rem; color: #6b7280; background: #f3f4f6; border-radius: 50px; padding: 3px 10px; }
+  .en-student-list { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+  .en-student-item { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; background: #fafafa; border: 1px solid #f3f4f6; border-radius: 11px; cursor: pointer; transition: background .14s, border-color .14s, transform .1s; gap: 12px; }
+  .en-student-item:hover { background: #f0fdf6; border-color: #a8e6c5; transform: translateX(2px); }
+  .en-student-name { font-size: .85rem; font-weight: 500; color: #111827; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .en-student-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .en-exam-number { font-family: var(--font-mono); font-size: .76rem; font-weight: 500; color: #1a6b3f; background: #f0fdf6; border: 1px solid #d4f4e4; border-radius: 7px; padding: 3px 9px; }
+  .en-copy-hint { display: flex; align-items: center; gap: 4px; font-size: .68rem; color: #9ca3af; white-space: nowrap; }
+  .en-copy-hint svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .en-student-item.copied { background: #f0fdf6; border-color: #2aab68; }
+  .en-student-item.copied .en-copy-hint { color: #218a52; }
+  .en-year-group { margin-bottom: 6px; }
+  .en-year-group + .en-year-group { margin-top: 14px; }
+  .en-year-label { display: flex; align-items: center; gap: 8px; font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #6b7280; margin-bottom: 7px; padding: 0 2px; }
+  .en-year-label::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
+  .en-year-count { font-size: .68rem; font-weight: 600; color: #9ca3af; white-space: nowrap; }
+  .en-year-pill { background: #f0fdf6; border: 1px solid #a8e6c5; color: #1a6b3f; border-radius: 50px; padding: 2px 9px; font-size: .66rem; font-weight: 700; letter-spacing: .05em; }
+  .en-footer { padding: 14px 28px 22px; border-top: 1px solid #f3f4f6; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .en-footer-note { font-size: .73rem; color: #9ca3af; line-height: 1.4; }
+  .en-footer-note a { color: #218a52; text-decoration: none; font-weight: 500; }
+  .en-close-footer-btn { padding: 9px 20px; background: #111827; color: #ffffff; border: none; border-radius: 10px; font-family: var(--font-body); font-size: .82rem; font-weight: 600; cursor: pointer; transition: background .18s; white-space: nowrap; flex-shrink: 0; }
+  .en-close-footer-btn:hover { background: #1f2937; }
+  .en-trigger-wrap { display: flex; align-items: center; justify-content: center; margin-top: 6px; margin-bottom: 2px; }
+  .en-trigger-btn { display: inline-flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-family: var(--font-body); font-size: .78rem; font-weight: 500; color: #218a52; padding: 4px 8px; border-radius: 7px; transition: background .15s, color .15s; }
+  .en-trigger-btn:hover { background: #f0fdf6; color: #145230; }
+  .en-trigger-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
+  .en-copy-toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(12px); background: #0f3d24; color: #ffffff; font-size: .8rem; font-weight: 500; padding: 9px 18px; border-radius: 50px; z-index: 1100; opacity: 0; pointer-events: none; transition: opacity .28s, transform .28s var(--ease-out); white-space: nowrap; display: flex; align-items: center; gap: 8px; }
+  .en-copy-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .en-copy-toast svg { width: 14px; height: 14px; stroke: #4dc88a; fill: none; stroke-width: 2.2; }
+
+  @media (max-width: 800px) {
+    body { overflow: auto; }
+    .portal-wrapper { grid-template-columns: 1fr; grid-template-rows: auto 1fr; height: auto; min-height: 100vh; overflow: visible; }
+    .branding-panel { padding: 32px 28px; min-height: auto; }
+    .auth-panel { height: auto; overflow-y: visible; padding: 32px 28px; }
+    .dot-grid { display: none; }
+  }
+  @media (max-width: 540px) {
+    .branding-panel, .auth-panel { padding: 24px 20px; }
+    .field-row { grid-template-columns: 1fr; }
+    .form-footer { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .en-modal { border-radius: 18px; max-height: 92vh; }
+    .en-header { padding: 20px 20px 16px; }
+    .en-security-notice, .en-selector-area { margin-inline: 20px; padding-inline: 0; }
+    .en-list-area, .en-footer { padding-inline: 20px; }
+  }
+  </style>
+</head>
+<body>
+
+<!-- ── Exam Number Lookup Modal ──────────────────────────────────── -->
+<div class="en-backdrop" id="enBackdrop" role="dialog" aria-modal="true" aria-labelledby="enModalTitle" aria-hidden="true">
+  <div class="en-modal">
+    <div class="en-header">
+      <div class="en-header-icon">
+        <svg viewBox="0 0 24 24"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+      </div>
+      <div class="en-header-text">
+        <div class="en-header-title" id="enModalTitle">Find My Exam Number</div>
+        <p class="en-header-sub">Select your class to look up your exam number.</p>
+      </div>
+      <button class="en-close-btn" id="enCloseBtn" aria-label="Close">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="en-security-notice">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span><strong style="font-weight:600">Security notice:</strong> Only exam numbers are shown here. Your secret PIN is never displayed publicly. Click your name to copy your exam number.</span>
+    </div>
+    <div class="en-selector-area">
+      <label class="en-selector-label" for="enClassSelect">Select Your Class</label>
+      <select class="en-class-select" id="enClassSelect">
+        <option value="">— Choose a class —</option>
+        <optgroup label="Senior Secondary School">
+          <option value="SS 1">SS 1</option>
+          <option value="SS 2">SS 2</option>
+        </optgroup>
+        <optgroup label="Junior Secondary School">
+          <option value="JSS 1">JSS 1</option>
+          <option value="JSS 2">JSS 2</option>
+        </optgroup>
+        <optgroup label="Primary School">
+          <option value="PRY 1">PRY 1</option>
+          <option value="PRY 2">PRY 2</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="en-list-area" id="enListArea" aria-live="polite">
+      <div class="en-placeholder" id="enPlaceholder">
+        <div class="en-placeholder-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <p><strong>No class selected yet</strong>Choose your class above to see the student list with exam numbers.</p>
+      </div>
+      <div id="enStudentListWrap" style="display:none">
+        <div class="en-list-heading">
+          <span class="en-list-class-label" id="enListClassLabel"></span>
+          <span class="en-student-count" id="enStudentCount"></span>
+        </div>
+        <ul class="en-student-list" id="enStudentList" role="list"></ul>
+      </div>
+    </div>
+    <div class="en-footer">
+      <p class="en-footer-note">Not listed? Contact the <a href="mailto:exams@schoolname.edu.ng">exams office</a>.</p>
+      <button class="en-close-footer-btn" id="enCloseFooterBtn">Done</button>
+    </div>
+  </div>
+</div>
+<div class="en-copy-toast" id="enCopyToast">
+  <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="enCopyToastMsg">Exam number copied!</span>
+</div>
+
+<!-- ── Portal Wrapper ────────────────────────────────────────────── -->
+<main class="portal-wrapper">
+  <!-- LEFT: Branding -->
+  <section class="branding-panel">
+    <div class="brand-top">
+      <div class="school-badge">
+        <div class="badge-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 3 2 9l10 6 10-6-10-6z"/><path d="M2 9v6m20-6v6"/><path d="M6 11.5V17c0 2.21 2.686 4 6 4s6-1.79 6-4v-5.5"/></svg>
+        </div>
+        <div>
+          <div class="school-name">Federal Government College</div>
+          <div class="school-tagline">Excellence · Integrity · Progress</div>
+        </div>
+      </div>
+      <div class="brand-headline">
+        <div class="headline-chip"><span></span> Academic Portal</div>
+        <h1>Access Your<br/>Academic <em>Records</em><br/>Instantly</h1>
+        <p>A secure, real-time portal for students to view results and teachers to manage academic records — all in one place.</p>
+        <div class="stats-row">
+          <div class="stat-item"><span class="stat-number">3,200+</span><span class="stat-label">Students</span></div>
+          <div class="stat-item"><span class="stat-number">140+</span><span class="stat-label">Staff</span></div>
+          <div class="stat-item"><span class="stat-number">99.9%</span><span class="stat-label">Uptime</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="dot-grid" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div class="brand-footer">
+      <p>© 2025 EduPortal NG. All rights reserved.</p>
+      <span class="session-badge" id="sessionBadgeLeft">2025/2026 Session</span>
+    </div>
+  </section>
+
+  <!-- RIGHT: Auth -->
+  <section class="auth-panel">
+    <div class="auth-topbar">
+      <span class="portal-label">Result Portal</span>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <a href="index.html" class="help-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Home
+        </a>
+       
+      </div>
+    </div>
+
+    <div class="role-toggle" id="roleToggle">
+      <div class="toggle-slider"></div>
+      <button class="toggle-btn active" id="studentTab" data-role="student">
+        <svg viewBox="0 0 24 24"><path d="M12 3 2 9l10 6 10-6-10-6z"/><path d="M6 11.5V17c0 2.21 2.686 4 6 4s6-1.79 6-4v-5.5"/></svg>
+        Student Portal
+      </button>
+      <button class="toggle-btn" id="teacherTab" data-role="teacher">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M3 9h18M9 21V9"/></svg>
+        Teacher Portal
+      </button>
+    </div>
+
+    <!-- Student Login -->
+    <div class="form-section active" id="studentSection">
+      <div class="form-header">
+        <h2>Check Your Result</h2>
+        <p>Enter your <strong>exam number</strong> and <strong>PIN</strong> to access your result for the selected session and term.</p>
+      </div>
+      <form id="studentForm" novalidate autocomplete="off">
+        <div class="field-group">
+          <label for="examNumber">Exam Number</label>
+          <div class="input-wrapper">
+            <input type="text" id="examNumber" placeholder="e.g. SAGE/2026/0001" autocomplete="off" spellcheck="false" />
+            <svg class="input-icon" viewBox="0 0 24 24"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+          </div>
+        </div>
+        <div class="en-trigger-wrap">
+          <button type="button" class="en-trigger-btn" id="enOpenBtn">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            Don't know your exam number? Find it here
+          </button>
+        </div>
+        <div class="field-group">
+          <label for="studentPin">PIN</label>
+          <div class="input-wrapper">
+            <input type="password" id="studentPin" placeholder="Enter your scratch card PIN" inputmode="numeric" maxlength="16" autocomplete="current-password" />
+            <svg class="input-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <button type="button" class="pin-toggle" aria-label="Toggle PIN visibility">
+              <svg class="eye-open" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="eye-close" viewBox="0 0 24 24" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label for="session">Session</label>
+            <div class="input-wrapper">
+              <select id="session">
+                <option value="">Select session</option>
+                <option value="2025/2026">2025/2026</option>
+                <option value="2024/2025">2024/2025</option>
+                <option value="2023/2024">2023/2024</option>
+                <option value="2022/2023">2022/2023</option>
+              </select>
+              <svg class="input-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="term">Term</label>
+            <div class="input-wrapper">
+              <select id="term">
+                <option value="">Select term</option>
+                <option value="first">First Term</option>
+                <option value="second">Second Term</option>
+                <option value="third">Third Term</option>
+              </select>
+              <svg class="input-icon" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="status-msg" id="studentStatus" role="alert" aria-live="polite">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span class="status-text"></span>
+        </div>
+        <button type="submit" class="submit-btn student-btn" id="studentBtn">
+          <span class="btn-text">View My Result</span>
+          <svg class="btn-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          <div class="btn-spinner"></div>
+        </button>
+      </form>
+      <div class="form-footer">
+        <p class="footer-note">No PIN? <a href="mailto:exams@schoolname.edu.ng">Contact the exams office</a></p>
+        <div class="security-badge">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          SSL Secured
+        </div>
+      </div>
+    </div>
+
+    <!-- Teacher Login -->
+    <div class="form-section" id="teacherSection">
+      <div class="form-header">
+        <h2>Staff Dashboard</h2>
+        <p>Sign in with your <strong>official staff email</strong> and <strong>password</strong> to manage student records and results.</p>
+      </div>
+      <form id="teacherForm" novalidate autocomplete="off">
+        <div class="field-group">
+          <label for="staffEmail">Staff Email Address</label>
+          <div class="input-wrapper">
+            <input type="email" id="staffEmail" placeholder="yourname@schoolname.edu.ng" autocomplete="email" />
+            <svg class="input-icon" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+        </div>
+        <div class="field-group">
+          <label for="teacherPassword">Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="teacherPassword" placeholder="Enter your staff password" autocomplete="current-password" />
+            <svg class="input-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <button type="button" class="pin-toggle" aria-label="Toggle password visibility">
+              <svg class="eye-open" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="eye-close" viewBox="0 0 24 24" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="divider"><span>Secured staff-only access</span></div>
+        <div class="status-msg" id="teacherStatus" role="alert" aria-live="polite">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span class="status-text"></span>
+        </div>
+        <button type="submit" class="submit-btn teacher-btn" id="teacherBtn">
+          <span class="btn-text">Access Dashboard</span>
+          <svg class="btn-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          <div class="btn-spinner"></div>
+        </button>
+      </form>
+      <div class="form-footer">
+        <p class="footer-note">Access issues? <a href="https://wa.me/2348104219705?text=Hello%20ICT%20Support%20for,%20saga%20school.">Contact ICT support</a></p>
+        <div class="security-badge">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          SSL Secured
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span class="toast-dot"></span>
+  <span id="toastMsg"></span>
+</div>
+
+<script type="module">
+/* ======================================================================
+   portal.html — EduPortal NG Authentication Gateway
+   FIX: sessionStorage persistence shield prevents auth-loop on redirect.
+   SCHEMA: Users collection path is 'users/{uid}' with field 'fullName',
+           'role', and 'assignedClass'. No firstName/lastName in users doc.
+   ====================================================================== */
+
+import { initializeApp }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import {
+  getFirestore, collection, query, where, getDocs, getDoc, doc, onSnapshot
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+/* ── Firebase Config ─────────────────────────────────────────────── */
+const firebaseConfig = {
+  apiKey: "AIzaSyATfeLlHqie9wvmVuOuhBL5BaBwdYIZC7w",
+  authDomain: "result-checker-c7a19.firebaseapp.com",
+  projectId: "result-checker-c7a19",
+  storageBucket: "result-checker-c7a19.firebasestorage.app",
+  messagingSenderId: "199064015810",
+  appId: "1:199064015810:web:e11290cc380e0d9b463c5b"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+/* ── Session helpers ─────────────────────────────────────────────── */
+function computeCurrentSession() {
+  const now   = new Date();
+  const year  = now.getFullYear();
+  const month = now.getMonth();
+  return month >= 8 ? `${year}/${year+1}` : `${year-1}/${year}`;
+}
+function computeCurrentTerm() {
+  const m = new Date().getMonth();
+  if (m >= 8) return 'first';
+  if (m <= 2) return 'second';
+  return 'third';
+}
+
+/* ── DOM init ────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+
+  /* ── Auto-select current session & term ──────────────────────── */
+  const currentSession = computeCurrentSession();
+  const currentTerm    = computeCurrentTerm();
+  const sessionSel = document.getElementById('session');
+  const termSel    = document.getElementById('term');
+  if (sessionSel) { Array.from(sessionSel.options).forEach(o => { if (o.value === currentSession) o.selected = true; }); }
+  if (termSel)    { Array.from(termSel.options).forEach(o => { if (o.value === currentTerm) o.selected = true; }); }
+  const badge = document.getElementById('sessionBadgeLeft');
+  if (badge) badge.textContent = `${currentSession} Session`;
+
+  /* ── Role toggle ─────────────────────────────────────────────── */
+  const roleToggle  = document.getElementById('roleToggle');
+  const toggleBtns  = document.querySelectorAll('.toggle-btn');
+  const studentSec  = document.getElementById('studentSection');
+  const teacherSec  = document.getElementById('teacherSection');
+  const studentStat = document.getElementById('studentStatus');
+  const teacherStat = document.getElementById('teacherStatus');
+
+  toggleBtns.forEach(btn => btn.addEventListener('click', () => switchRole(btn.dataset.role)));
+
+  function switchRole(role) {
+    toggleBtns.forEach(b => b.classList.toggle('active', b.dataset.role === role));
+    roleToggle.classList.toggle('teacher-active', role === 'teacher');
+    studentSec.classList.toggle('active', role === 'student');
+    teacherSec.classList.toggle('active', role === 'teacher');
+    hideStatus(studentStat);
+    hideStatus(teacherStat);
+  }
+
+  /* ── PIN/password visibility toggles ────────────────────────── */
+  document.querySelectorAll('.pin-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const wrapper = btn.closest('.input-wrapper');
+      const input   = wrapper?.querySelector('input');
+      if (!input) return;
+      const isText = input.type === 'text';
+      input.type = isText ? 'password' : 'text';
+      btn.querySelector('.eye-open').style.display  = isText ? 'block' : 'none';
+      btn.querySelector('.eye-close').style.display = isText ? 'none'  : 'block';
+    });
+  });
+
+  /* ── Student login ───────────────────────────────────────────── */
+  document.getElementById('studentForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn      = document.getElementById('studentBtn');
+    const examNum  = document.getElementById('examNumber').value.trim().toUpperCase();
+    const pin      = document.getElementById('studentPin').value.trim();
+    const session  = sessionSel?.value || '';
+    const term     = termSel?.value    || '';
+
+    if (!examNum || !pin || !session || !term) {
+      showStatus(studentStat, 'error', 'Please fill in all fields before continuing.'); return;
+    }
+    if (pin.length < 4) {
+      showStatus(studentStat, 'error', 'PIN must be at least 4 digits.'); return;
+    }
+
+    setLoading(btn, true);
+    hideStatus(studentStat);
+
+    try {
+      const q    = query(collection(db, 'students'), where('examNumber', '==', examNum), where('pin', '==', pin));
+      const snap = await getDocs(q);
+      if (snap.empty) throw new Error('Invalid exam number or PIN. Please check and try again.');
+      const studentDoc = snap.docs[0];
+      showStatus(studentStat, 'success', 'Credentials verified. Loading your result sheet…');
+      showToast('Login successful! Redirecting to your results…');
+      setTimeout(() => {
+        window.location.href = `result.html?id=${encodeURIComponent(studentDoc.id)}&session=${encodeURIComponent(session)}&term=${encodeURIComponent(term)}`;
+      }, 1200);
+    } catch (err) {
+      showStatus(studentStat, 'error', err.message || 'Login failed. Check your credentials.');
+    } finally {
+      setLoading(btn, false);
+    }
+  });
+
+  /* ── Teacher login ───────────────────────────────────────────── */
+  /* FIX: After successful Firebase Auth sign-in, we write a
+     sessionStorage shield key BEFORE the redirect. The dashboard's
+     onAuthStateChanged listener checks this key and skips the redirect-
+     back-to-portal guard during the initial page load hydration window. */
+  document.getElementById('teacherForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn      = document.getElementById('teacherBtn');
+    const email    = document.getElementById('staffEmail').value.trim();
+    const password = document.getElementById('teacherPassword').value;
+
+    if (!email || !password) {
+      showStatus(teacherStat, 'error', 'Please enter your staff email and password.'); return;
+    }
+    if (!isValidEmail(email)) {
+      showStatus(teacherStat, 'error', 'Please enter a valid email address.'); return;
+    }
+    if (password.length < 6) {
+      showStatus(teacherStat, 'error', 'Password must be at least 6 characters.'); return;
+    }
+
+    setLoading(btn, true);
+    hideStatus(teacherStat);
+
+    try {
+      /* Step 1 — Firebase Auth */
+      const credential = await signInWithEmailAndPassword(auth, email, password);
+      const uid = credential.user.uid;
+
+      /* Step 2 — Verify teacher profile in 'users/{uid}'.
+         Schema: { fullName: string, role: string, assignedClass: string }
+         NOTE: fullName is a single field — no firstName/lastName split. */
+      const userSnap = await getDoc(doc(db, 'users', uid));
+
+      if (!userSnap.exists()) {
+        await auth.signOut();
+        throw new Error('Your account is not registered as a staff member. Contact ICT support.');
+      }
+
+      const userData = userSnap.data();
+      const role     = userData.role || '';
+
+      if (role !== 'teacher' && role !== 'admin') {
+        await auth.signOut();
+        throw new Error('Access denied. This portal is for teachers only.');
+      }
+
+      /* Step 3 — Write SESSION STORAGE SHIELD before navigating.
+         This prevents the dashboard's auth guard from evicting a
+         freshly-signed-in user whose Firebase token hasn't propagated
+         across the file:// origin boundary yet. */
+      const sessionPayload = {
+        uid,
+        fullName:      userData.fullName      || 'Teacher',
+        role:          userData.role          || 'teacher',
+        assignedClass: userData.assignedClass || 'SSS 2A',
+        authenticatedAt: Date.now(),
+      };
+      sessionStorage.setItem('eduportal_teacher_session', JSON.stringify(sessionPayload));
+
+      /* Extract a display name from fullName safely. */
+      const displayFirst = (userData.fullName || 'Teacher').split(' ')[0] || 'Teacher';
+
+      showStatus(teacherStat, 'success', 'Authentication successful. Preparing your dashboard…');
+      showToast(`Welcome, ${displayFirst}! Opening your dashboard…`);
+
+      setTimeout(() => {
+        window.location.href = 'teacher_dashboard.html';
+      }, 1100);
+
+    } catch (err) {
+      showStatus(teacherStat, 'error', firebaseErrMsg(err));
+    } finally {
+      setLoading(btn, false);
+    }
+  });
+
+  /* ── Firebase Auth error mapper ──────────────────────────────── */
+  function firebaseErrMsg(err) {
+    const c = err?.code || '';
+    if (c === 'auth/user-not-found')         return 'No account found with this email address.';
+    if (c === 'auth/wrong-password')         return 'Incorrect password. Please try again.';
+    if (c === 'auth/invalid-credential')     return 'Incorrect email or password. Please try again.';
+    if (c === 'auth/too-many-requests')      return 'Too many failed attempts. Please try again later.';
+    if (c === 'auth/user-disabled')          return 'This account has been disabled. Contact ICT support.';
+    if (c === 'auth/network-request-failed') return 'Network error. Check your internet connection.';
+    return err.message || 'Login failed. Please check your credentials.';
+  }
+
+  /* ── Find My Exam Number Modal ───────────────────────────────── */
+  const backdrop       = document.getElementById('enBackdrop');
+  const openBtn        = document.getElementById('enOpenBtn');
+  const closeBtn       = document.getElementById('enCloseBtn');
+  const closeFooterBtn = document.getElementById('enCloseFooterBtn');
+  const classSelect    = document.getElementById('enClassSelect');
+  const placeholder    = document.getElementById('enPlaceholder');
+  const listWrap       = document.getElementById('enStudentListWrap');
+  const listEl         = document.getElementById('enStudentList');
+  const listClassLabel = document.getElementById('enListClassLabel');
+  const studentCount   = document.getElementById('enStudentCount');
+  const examNumInput   = document.getElementById('examNumber');
+  const copyToast      = document.getElementById('enCopyToast');
+  const copyToastMsg   = document.getElementById('enCopyToastMsg');
+  let copyToastTimer   = null;
+  let activeUnsub      = null;
+
+  function openModal() {
+    backdrop.classList.add('open');
+    backdrop.removeAttribute('aria-hidden');
+    classSelect.value = '';
+    showPlaceholder();
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => classSelect.focus(), 60);
+  }
+  function closeModal() {
+    backdrop.classList.remove('open');
+    backdrop.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    if (activeUnsub) { activeUnsub(); activeUnsub = null; }
+    openBtn.focus();
+  }
+  openBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  closeFooterBtn.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', e => { if (e.target === backdrop) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && backdrop.classList.contains('open')) closeModal(); });
+
+  function showPlaceholder() {
+    placeholder.innerHTML = `
+      <div class="en-placeholder">
+        <div class="en-placeholder-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+        <p><strong>No class selected yet</strong>Choose your class above to see the student list with exam numbers.</p>
+      </div>`;
+    placeholder.style.display = 'flex';
+    listWrap.style.display    = 'none';
+  }
+
+  classSelect.addEventListener('change', function() {
+    if (activeUnsub) { activeUnsub(); activeUnsub = null; }
+    if (!this.value) { showPlaceholder(); return; }
+    subscribeToClass(this.value);
+  });
+
+  /* Normalise a class string for fuzzy matching:
+     "JSS 2", "JSS2", "jss2", "JSS 2A", "JSS 2B" all → "JSS2" */
+  function normaliseClass(cls) {
+    return (cls || '').toUpperCase().replace(/\s+/g, '').replace(/[AB]$/, '');
+  }
+
+  function subscribeToClass(className) {
+    placeholder.innerHTML = `<div class="en-loading"><div class="en-loading-spinner"></div><p>Loading student list…</p></div>`;
+    placeholder.style.display = 'flex';
+    listWrap.style.display    = 'none';
+
+    const normTarget = normaliseClass(className);
+
+    try {
+      /* Fetch ALL students then filter client-side by normalised class name.
+         This handles any casing/spacing/A-B-arm mismatch between the teacher
+         dashboard's stored assignedClass and the portal dropdown value. */
+      const q = query(collection(db, 'students'));
+      activeUnsub = onSnapshot(q, snapshot => {
+        const students = snapshot.docs
+          .map(d => {
+            const data = d.data();
+            return { id: d.id, fullName: data.fullName || data.firstName || '', examNumber: data.examNumber || '', assignedClass: data.assignedClass || '', academicYear: data.academicYear || data.enrolledSession || '' };
+          })
+          .filter(s => normaliseClass(s.assignedClass) === normTarget);
+        renderStudentList(className, students);
+      }, err => {
+        placeholder.innerHTML = `
+          <div class="en-error-state">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <p>Could not load student list. Check your connection.</p>
+            <button class="en-retry-btn" id="enRetryBtn">Try again</button>
+          </div>`;
+        document.getElementById('enRetryBtn')?.addEventListener('click', () => subscribeToClass(className));
+        placeholder.style.display = 'flex';
+        listWrap.style.display    = 'none';
+      });
+    } catch {
+      placeholder.innerHTML = `<div class="en-error-state"><p>Could not connect. Please try again.</p></div>`;
+    }
+  }
+
+  function renderStudentList(className, students) {
+    if (!students.length) {
+      placeholder.innerHTML = `<div class="en-placeholder"><div class="en-placeholder-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><p><strong>No students found</strong>No registered students in ${esc(className)} yet.</p></div>`;
+      placeholder.style.display = 'flex';
+      listWrap.style.display    = 'none';
+      return;
+    }
+
+    listClassLabel.textContent = className;
+    studentCount.textContent   = '';  // count shown per year group instead
+
+    /* Group by academic year, normalising the stored value to display format */
+    const groups = {};
+    students.forEach(s => {
+      const raw = (s.academicYear || s.enrolledSession || 'Unknown').trim();
+      const yr  = raw.replace('-', '/');   // "2025-2026" → "2025/2026"
+      if (!groups[yr]) groups[yr] = [];
+      groups[yr].push(s);
+    });
+
+    /* Sort years descending (newest first), names alphabetically within each */
+    const sortedYears = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+    sortedYears.forEach(yr => groups[yr].sort((a, b) => a.fullName.localeCompare(b.fullName)));
+
+    const itemHtml = (s) => `
+      <li class="en-student-item" tabindex="0" data-exam="${esc(s.examNumber)}" aria-label="Copy exam number for ${esc(s.fullName)}">
+        <span class="en-student-name">${esc(s.fullName)}</span>
+        <div class="en-student-right">
+          <span class="en-exam-number">${esc(s.examNumber)}</span>
+          <span class="en-copy-hint"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</span>
+        </div>
+      </li>`;
+
+    listEl.innerHTML = sortedYears.map(yr => {
+      const count = groups[yr].length;
+      return `
+      <li class="en-year-group">
+        <div class="en-year-label">
+          <span class="en-year-pill">${esc(yr)}</span>
+          <span class="en-year-count">${count} ${count === 1 ? 'student' : 'students'}</span>
+        </div>
+        <ul class="en-student-list" style="margin:0;padding:0;">
+          ${groups[yr].map(itemHtml).join('')}
+        </ul>
+      </li>`;
+    }).join('');
+
+    placeholder.style.display = 'none';
+    listWrap.style.display    = 'block';
+    listEl.querySelectorAll('.en-student-item').forEach(item => {
+      item.addEventListener('click',   () => handleCopy(item));
+      item.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') { e.preventDefault(); handleCopy(item); } });
+    });
+  }
+
+  function handleCopy(item) {
+    const en = item.dataset.exam; if (!en) return;
+    const doIt = () => onCopied(item, en);
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(en).then(doIt).catch(() => { legacyCopy(en); doIt(); });
+    } else { legacyCopy(en); doIt(); }
+  }
+  function onCopied(item, en) {
+    item.classList.add('copied');
+    const hint = item.querySelector('.en-copy-hint');
+    if (hint) hint.textContent = '✓ Copied!';
+    setTimeout(() => {
+      item.classList.remove('copied');
+      if (hint) hint.innerHTML = `<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.8"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy`;
+    }, 2000);
+    if (examNumInput) examNumInput.value = en;
+    copyToastMsg.textContent = en + ' copied — paste it in the form';
+    copyToast.classList.add('show');
+    clearTimeout(copyToastTimer);
+    copyToastTimer = setTimeout(() => copyToast.classList.remove('show'), 3200);
+    setTimeout(() => closeModal(), 1400);
+  }
+  function legacyCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch(_) {}
+    document.body.removeChild(ta);
+  }
+
+  /* ── Shared helpers ──────────────────────────────────────────── */
+  function setLoading(btn, on) { btn.classList.toggle('loading', on); }
+  function showStatus(el, type, msg) {
+    el.className = `status-msg ${type} show`;
+    el.querySelector('.status-text').textContent = msg;
+  }
+  function hideStatus(el) { el.classList.remove('show','error','success'); }
+  let toastTimer;
+  function showToast(msg) {
+    document.getElementById('toastMsg').textContent = msg;
+    document.getElementById('toast').classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => document.getElementById('toast').classList.remove('show'), 3800);
+  }
+  function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  }
+
+}); // end DOMContentLoaded
+</script>
+</body>
+</html>
